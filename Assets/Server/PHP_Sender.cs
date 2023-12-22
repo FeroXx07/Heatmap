@@ -50,7 +50,7 @@ public class PHP_Sender : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             //Debug.Log($"{file} data sent successfully!");
-            //Debug.Log("Response: \n" + request.downloadHandler.text);
+            Debug.Log("Response: \n" + request.downloadHandler.text);
             uint newId = uint.Parse(string.Concat(request.downloadHandler.text.Where(Char.IsDigit)));
             callback?.Invoke(newId);
         }
@@ -76,7 +76,7 @@ public struct Hit
    public string Hitter;
    public int SourcePositionX;
    public int SourcePositionY;
-    public int SourcePositionZ;
+   public int SourcePositionZ;
 }
 
 [System.Serializable]
@@ -116,7 +116,7 @@ public struct Kill
 }
 
 [System.Serializable]
-public struct Position
+public struct Movement
 {
    public UInt64 Id;
    public UInt64 SessionId;

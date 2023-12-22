@@ -12,8 +12,8 @@ if ($conn) {
     $data = json_decode($json_data, true);
 
     if ($data) {
+        
         $table_name = $data["table"];
-
         // Convert dateCreatedStamp to MySQL DATETIME format
         $dateCreatedStamp = date("Y-m-d H:i:s", strtotime($data["dateCreatedStamp"]));
 
