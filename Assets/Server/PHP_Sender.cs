@@ -74,9 +74,10 @@ public struct Hit
    public string AttackType;
    public int Damage;
    public string Hitter;
+   public string Hitted;
    public int SourcePositionX;
    public int SourcePositionY;
-    public int SourcePositionZ;
+   public int SourcePositionZ;
 }
 
 [System.Serializable]
