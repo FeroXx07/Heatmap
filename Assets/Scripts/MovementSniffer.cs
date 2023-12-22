@@ -29,7 +29,9 @@ public class MovementSniffer : MonoBehaviour
     void RegisterPosition()
     {
 
+        Vector3 position = player.transform.position;
 
+        Debug.Log("Registering player position: " + position);
 
     }
 }
