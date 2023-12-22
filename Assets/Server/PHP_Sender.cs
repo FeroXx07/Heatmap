@@ -29,26 +29,15 @@ public class PHP_Sender : MonoBehaviour
     #endregion
 
     #region Sender
-    string apiUrl = "https://citmalumnes.upc.es/~allenbn/";
-    //public void SendData(User user, Action<uint> callback)
-    //{
-    //    string json = JsonUtility.ToJson(user);
-    //    StartCoroutine(SendWebRequest(apiUrl, "addUsers.php", json, callback));
-    //}
-    //public void SendData(Session user, Action<uint> callback)
-    //{
-    //    string json = JsonUtility.ToJson(user);
-    //    StartCoroutine(SendWebRequest(apiUrl, "addSession.php", json, callback));
-    //}
-    //public void SendData(Monetization user, Action<uint> callback)
-    //{
-    //    string json = JsonUtility.ToJson(user);
-    //    StartCoroutine(SendWebRequest(apiUrl, "addMonetization.php", json, callback));
-    //}
+    string apiUrl = "https://citmalumnes.upc.es/~brandonam/addData.php/POST";
 
-    public IEnumerator SendWebRequest(string url, string file, string json, Action<uint> callback)
+    public void SendData(string jsonData, Action<uint> callback)
     {
-        UnityWebRequest request = new UnityWebRequest(url + file, "POST");
+        StartCoroutine(SendWebRequest(apiUrl, jsonData, callback));
+    }
+    public IEnumerator SendWebRequest(string url, string json, Action<uint> callback)
+    {
+        UnityWebRequest request = new UnityWebRequest(apiUrl);
         byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
         request.uploadHandler = new UploadHandlerRaw(jsonBytes);
         request.downloadHandler = new DownloadHandlerBuffer();
@@ -71,4 +60,68 @@ public class PHP_Sender : MonoBehaviour
         }
     }
     #endregion
+}
+
+[System.Serializable]
+public struct Hit
+{
+    UInt64 Id;
+    UInt64 SessionId;
+    int PostionX;
+    int PostionY;
+    int PostionZ;
+    string TimeStamp;
+    string AttackType;
+    int Damage;
+    string Hitter;
+    int SourcePositionX;
+    int SourcePositionY;
+    int SourcePositionZ;
+}
+
+[System.Serializable]
+public struct Death
+{
+    UInt64 Id;
+    UInt64 SessionId;
+    int PostionX;
+    int PostionY;
+    int PostionZ;
+    string TimeStamp;
+    string DeathType;
+}
+
+[System.Serializable]
+public struct Interaction
+{
+    UInt64 Id;
+    UInt64 SessionId;
+    int PostionX;
+    int PostionY;
+    int PostionZ;
+    string TimeStamp;
+    string interactionType;
+}
+
+[System.Serializable]
+public struct Kill
+{
+    UInt64 Id;
+    UInt64 SessionId;
+    int PostionX;
+    int PostionY;
+    int PostionZ;
+    string TimeStamp;
+    string enemyType;
+}
+
+[System.Serializable]
+public struct Position
+{
+    UInt64 Id;
+    UInt64 SessionId;
+    int PostionX;
+    int PostionY;
+    int PostionZ;
+    string TimeStamp;
 }
