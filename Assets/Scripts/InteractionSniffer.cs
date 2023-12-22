@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
+public class InteractionSniffer : MonoBehaviour, IMessageReceiver
 {
     public GameObject[] enemies;
     //public List<string> messages = new List<string>();
@@ -28,7 +28,7 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
 
     public void OnReceiveMessage(MessageType type, object sender, object msg)
     {
-        //string message = "Type: " + type + " Sender: " + " Msg: " + msg;
+        string message = "Type: " + type + " Sender: " + " Msg: " + msg;
 
         //messages.Add(message);
 
@@ -50,4 +50,10 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
                 break;
         }
     }
+
+    public void SayTest()
+    {
+        Debug.Log("test function");
+    }
+
 }
