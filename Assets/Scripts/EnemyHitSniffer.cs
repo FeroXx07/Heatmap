@@ -28,7 +28,7 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
 
     public void OnReceiveMessage(MessageType type, object sender, object msg)
     {
-        string message = "Type: " + type + " Sender: " + " Msg: " + msg;
+        //string message = "Type: " + type + " Sender: " + " Msg: " + msg;
 
         //messages.Add(message);
 
