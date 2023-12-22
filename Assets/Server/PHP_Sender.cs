@@ -65,63 +65,63 @@ public class PHP_Sender : MonoBehaviour
 [System.Serializable]
 public struct Hit
 {
-    UInt64 Id;
-    UInt64 SessionId;
-    int PostionX;
-    int PostionY;
-    int PostionZ;
-    string TimeStamp;
-    string AttackType;
-    int Damage;
-    string Hitter;
-    int SourcePositionX;
-    int SourcePositionY;
-    int SourcePositionZ;
+   public UInt64 Id;
+   public UInt64 SessionId;
+   public int PostionX;
+   public int PostionY;
+   public int PostionZ;
+   public string TimeStamp;
+   public string AttackType;
+   public int Damage;
+   public string Hitter;
+   public int SourcePositionX;
+   public int SourcePositionY;
+    public int SourcePositionZ;
 }
 
 [System.Serializable]
 public struct Death
 {
-    UInt64 Id;
-    UInt64 SessionId;
-    int PostionX;
-    int PostionY;
-    int PostionZ;
-    string TimeStamp;
-    string DeathType;
+    public UInt64 Id;
+    public UInt64 SessionId;
+    public int PostionX;
+    public int PostionY;
+    public int PostionZ;
+    public string TimeStamp;
+    public string DeathType;
 }
 
 [System.Serializable]
 public struct Interaction
 {
-    UInt64 Id;
-    UInt64 SessionId;
-    int PostionX;
-    int PostionY;
-    int PostionZ;
-    string TimeStamp;
-    string interactionType;
+    public UInt64 Id;
+    public UInt64 SessionId;
+    public int PostionX;
+    public int PostionY;
+    public int PostionZ;
+    public string TimeStamp;
+    public string interactionType;
 }
 
 [System.Serializable]
 public struct Kill
 {
-    UInt64 Id;
-    UInt64 SessionId;
-    int PostionX;
-    int PostionY;
-    int PostionZ;
-    string TimeStamp;
-    string enemyType;
+   public UInt64 Id;
+   public UInt64 SessionId;
+   public int PostionX;
+   public int PostionY;
+   public int PostionZ;
+   public string TimeStamp;
+   public string enemyType;
 }
 
 [System.Serializable]
 public struct Position
 {
-    UInt64 Id;
-    UInt64 SessionId;
-    int PostionX;
-    int PostionY;
-    int PostionZ;
-    string TimeStamp;
+   public UInt64 Id;
+   public UInt64 SessionId;
+   public int PostionX;
+   public int PostionY;
+   public int PostionZ;
+   public string TimeStamp;
 }
