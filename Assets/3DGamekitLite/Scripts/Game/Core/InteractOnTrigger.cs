@@ -8,6 +8,8 @@ namespace Gamekit3D
     [RequireComponent(typeof(Collider))]
     public class InteractOnTrigger : MonoBehaviour
     {
+        public InteractionSniffer.InteractableType interactableType;
+        public bool triggered = false;
         public LayerMask layers;
         public UnityEvent OnEnter, OnExit;
         new Collider collider;
@@ -22,8 +24,9 @@ namespace Gamekit3D
 
         void OnTriggerEnter(Collider other)
         {
-            if (0 != (layers.value & 1 << other.gameObject.layer))
+            if (0 != (layers.value & 1 << other.gameObject.layer) && !triggered)
             {
+                triggered = true;
                 ExecuteOnEnter(other);
             }
         }
@@ -31,6 +34,7 @@ namespace Gamekit3D
         protected virtual void ExecuteOnEnter(Collider other)
         {
             OnEnter.Invoke();
+            InteractionSniffer.OnInteraction?.Invoke(interactableType, gameObject);
             for (var i = 0; i < inventoryChecks.Length; i++)
             {
                 inventoryChecks[i].CheckInventory(other.GetComponentInChildren<InventoryController>());
