@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class InteractionSniffer : MonoBehaviour
+public class InteractionSniffer : MonoBehaviour, IMessageReceiver
 {
     public enum InteractableType
     {
@@ -18,7 +18,8 @@ public class InteractionSniffer : MonoBehaviour
         PRESSURE_PLATE = 6,
         GET_TREASURE = 7,
         HEAL = 8,
-        SHOW_INFO_TEXT = 9
+        SHOW_INFO_TEXT = 9,
+        DAMAGE_BOX = 10,
     }
 
     static public Action<InteractableType, GameObject> OnInteraction;
@@ -32,29 +33,34 @@ public class InteractionSniffer : MonoBehaviour
 
     private void Awake()
     {
-        //GameObject interactable = GameObject.find<InteractOnTrigger>().gameObject;
-        //interactables.Add(interactable);
+        //GameObject[] allGameObjects = GameObject.FindObjectsOfType<GameObject>();
+        //foreach (GameObject go in allGameObjects)
+        //{
+        //    // Check if the GameObject has the specified script attached
+        //    if (go.GetComponent("InteractOnTrigger") != null && !go.transform.parent.name.Contains("Example"))
+        //    {
+        //        // Add the GameObject to the list
+        //        interactables.Add(go);
+        //    }
+        //}
 
-        GameObject[] allGameObjects = GameObject.FindObjectsOfType<GameObject>();
-        foreach (GameObject go in allGameObjects)
+        GameObject[] enemyBoxes = GameObject.FindGameObjectsWithTag("Destructible");
+
+        foreach (GameObject box in enemyBoxes)
         {
-            // Check if the GameObject has the specified script attached
-            if (go.GetComponent("InteractOnTrigger") != null && !go.transform.parent.name.Contains("Example"))
-            {
-                // Add the GameObject to the list
-                interactables.Add(go);
-            }
+            Damageable enemyDamageable = box.GetComponent<Damageable>(); ;
+            enemyDamageable.onDamageMessageReceivers.Add(this);
         }
     }
 
 
     public void OnSniffInteraction(InteractableType type, GameObject go)
     {
-        string message = "Type: " + type + " Sender: " + go;
+        string message = "Interaction Type: " + type + " Sender: " + go;
 
         //messages.Add(message);
 
-        Debug.Log(message);
+       Debug.Log(message);
 
         switch (type)
         {
@@ -63,6 +69,8 @@ public class InteractionSniffer : MonoBehaviour
             case InteractableType.GET_KEY:
                 break;
             case InteractableType.USE_KEY:
+                break;
+            case InteractableType.DAMAGE_BOX: //wip
                 break;
             case InteractableType.BREAK_BOX: //wip
                 break;
@@ -79,6 +87,32 @@ public class InteractionSniffer : MonoBehaviour
             case InteractableType.SHOW_INFO_TEXT:
                 break;
             default:
+                break;
+        }
+    }
+
+    public void OnReceiveMessage(MessageType type, object sender, object msg)
+    {
+
+        Damageable senderScr = sender as Damageable;
+
+        string message = "Type: " + type + " Sender: " + senderScr + " Msg: " + msg;
+
+        //messages.Add(message);
+
+        //Debug.Log(message);
+
+        switch (type)
+        {
+            case MessageType.DAMAGED:
+                {
+                    OnSniffInteraction(InteractableType.DAMAGE_BOX, senderScr.gameObject);
+                }
+                break;
+            case MessageType.DEAD:
+                {
+                    OnSniffInteraction(InteractableType.BREAK_BOX, senderScr.gameObject);
+                }
                 break;
         }
     }
