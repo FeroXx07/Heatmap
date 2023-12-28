@@ -13,7 +13,6 @@ namespace Server
         {
             Table = this.ToString().Replace("Server.", "");
             return JsonUtility.ToJson(this);
-            ;
         }
     }
 
