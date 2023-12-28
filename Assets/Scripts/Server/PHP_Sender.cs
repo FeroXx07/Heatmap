@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using ScriptableObjects;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -30,11 +31,19 @@ namespace Server
         {
             instance = null;
         }
+
+        private void OnApplicationQuit() // It is called before OnDisable, because this when inactive cannot start coroutines
+        {
+            EndSession();
+        }
+
         #endregion
         
         #region Sender
-        private const string apiUrl = "https://citmalumnes.upc.es/~brandonam/addData.php/POST";
-        private const string localHostUrl = "http://localhost/delivery3/addUser.php";
+        private const string apiUrlAddUser = "https://citmalumnes.upc.es/~brandonam/addData.php/POST";
+        private const string apiUrlAddSession = "https://citmalumnes.upc.es/~brandonam/addData.php/POST";
+        private const string localHostUrlAddUser = "http://localhost/delivery3/addUser.php";
+        private const string localHostUrlAddSession = "http://localhost/delivery3/addSession.php";
         
         public void SendData(string url, string jsonData, Action<uint> callback)
         {
@@ -57,8 +66,8 @@ namespace Server
             {
                 //Debug.Log($"{file} data sent successfully!");
                 Debug.Log($"Response for {json}: {request.downloadHandler.text}");
-                // uint newId = uint.Parse(string.Concat(request.downloadHandler.text.Where(Char.IsDigit)));
-                // callback?.Invoke(newId);
+                uint newId = uint.Parse(string.Concat(request.downloadHandler.text.Where(Char.IsDigit)));
+                callback?.Invoke(newId);
             }
             else
             {
@@ -82,8 +91,45 @@ namespace Server
             
             string json = userData.ToJson();
             Debug.LogWarning(json);
+            SendData(useLocalHost ? localHostUrlAddUser : apiUrlAddUser, json, OnUserLogin);
+        }
+        private void OnUserLogin(uint newId)
+        {
+            userData.Id = newId;
+            InitSession();
+        }
+        public Session session;
+        private void InitSession()
+        {
+            session.SessionId = UInt64.MaxValue;
+            session.PlayerId = userData.Id;
+            session.Start = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            session.End = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string json = session.ToJson();
+            Debug.LogWarning(json);
+            SendData(useLocalHost ? localHostUrlAddSession : apiUrlAddUser, json, OnSessionLogin);
+        }
 
-            SendData(useLocalHost ? localHostUrl : apiUrl, json, null);
+        private void OnSessionLogin(uint newId)
+        {
+            session.SessionId = newId;
+        }
+        private void EndSession()
+        {
+            if (session.SessionId == UInt64.MaxValue)
+            {
+                session.Start = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            session.PlayerId = userData.Id;
+            session.End = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string json = session.ToJson();
+            Debug.LogWarning(json);
+            SendData(useLocalHost ? localHostUrlAddSession : apiUrlAddUser, json, OnSessionLogout);
+        }
+
+        private void OnSessionLogout(uint newId)
+        {
+            Debug.LogWarning("Session has ended");
         }
         #endregion
     }

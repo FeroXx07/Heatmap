@@ -1,24 +1,29 @@
 using Gamekit3D;
 using Gamekit3D.Message;
 using UnityEngine;
+
 public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
 {
     public bool showDebugLogs = false;
+
     public GameObject[] enemies;
+
     //public List<string> messages = new List<string>();
     private void Awake()
     {
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
     }
+
     private void Start()
     {
-
-        foreach (GameObject enemy in enemies) 
+        foreach (GameObject enemy in enemies)
         {
-            Damageable enemyDamageable = enemy.GetComponent<Damageable>(); ;
+            Damageable enemyDamageable = enemy.GetComponent<Damageable>();
+            ;
             enemyDamageable.onDamageMessageReceivers.Add(this);
         }
     }
+
     public void OnReceiveMessage(MessageType type, object sender, object msg)
     {
         //string message = "Type: " + type + " Sender: " + " Msg: " + msg;
@@ -26,20 +31,19 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
         //messages.Add(message);
 
         //Debug.Log(message);
-
         switch (type)
         {
             case MessageType.DAMAGED:
-                {
-                    Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                    //Damaged(damageData);
-                }
+            {
+                Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
+                //Damaged(damageData);
+            }
                 break;
             case MessageType.DEAD:
-                {
-                    Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                    //Die(damageData);
-                }
+            {
+                Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
+                //Die(damageData);
+            }
                 break;
         }
     }
