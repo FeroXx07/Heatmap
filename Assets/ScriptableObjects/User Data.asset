@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f966a9ad4205ab54bae65ef005e9b3b5, type: 3}
   m_Name: User Data
   m_EditorClassIdentifier: 
-  Name: Enter a Name
-  Sex: Enter your Sex
+  Name: Miguel
+  Sex: Male
+  Age: 23
+  Country: Spain
