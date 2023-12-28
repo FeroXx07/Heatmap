@@ -1,0 +1,1 @@
+{"Table":"User","Id":18446744073709551615,"Name":"Ali","Sex":"Male","Age":23,"Country":"Spain","DateCreated":"2023-12-27T23:36:45"}

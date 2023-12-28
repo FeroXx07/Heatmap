@@ -3,10 +3,12 @@ using Gamekit3D.Message;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Server;
 using UnityEngine;
 
 public class PlayerHitSniffer : MonoBehaviour, IMessageReceiver
 {
+    public bool showDebugLogs = false;
     public GameObject player;
     private Damageable playerDamageable;
     
@@ -46,7 +48,7 @@ public class PlayerHitSniffer : MonoBehaviour, IMessageReceiver
 
                     // Send player hit data to PHP sender
                     string json = JsonUtility.ToJson(hit);
-                    PHP_Sender.instance.SendData(json, null);
+                    //PHP_Sender.instance.SendData(json, null);
                 }
                 break;
             case MessageType.DEAD:

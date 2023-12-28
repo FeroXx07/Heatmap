@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class InteractionSniffer : MonoBehaviour, IMessageReceiver
 {
+    public bool showDebugLogs = false;
     public enum InteractableType
     {
         NONE = 0,
@@ -22,7 +22,7 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
         DAMAGE_BOX = 10,
     }
 
-    static public Action<InteractableType, GameObject> OnInteraction;
+    public static Action<InteractableType, GameObject> OnInteraction;
     public List<GameObject> interactables;
     //public List<string> messages = new List<string>();
 
@@ -48,7 +48,7 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
 
         foreach (GameObject box in enemyBoxes)
         {
-            Damageable enemyDamageable = box.GetComponent<Damageable>(); ;
+            Damageable enemyDamageable = box.GetComponent<Damageable>();
             enemyDamageable.onDamageMessageReceivers.Add(this);
         }
     }
@@ -86,16 +86,14 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
                 break;
             case InteractableType.SHOW_INFO_TEXT:
                 break;
-            default:
-                break;
         }
     }
 
     public void OnReceiveMessage(MessageType type, object sender, object msg)
     {
-
         Damageable senderScr = sender as Damageable;
-
+        if (senderScr == null) return;
+        
         string message = "Type: " + type + " Sender: " + senderScr + " Msg: " + msg;
 
         //messages.Add(message);
@@ -121,5 +119,4 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
     {
         Debug.Log("test function");
     }
-
 }
