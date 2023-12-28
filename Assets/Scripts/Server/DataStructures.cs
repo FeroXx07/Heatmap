@@ -63,8 +63,8 @@ namespace Server
     [System.Serializable]
     public class Interaction : PositionTable
     {
-        [NonSerialized] public UInt64 InteractionId;
-        public string interactionType;
+        [NonSerialized] public UInt64 InteractionId; 
+        public string InteractionType;
     }
 
     [System.Serializable]

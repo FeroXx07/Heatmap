@@ -2,11 +2,15 @@ using Gamekit3D;
 using Gamekit3D.Message;
 using System;
 using System.Collections.Generic;
+using Server;
 using UnityEngine;
 
 public class InteractionSniffer : MonoBehaviour, IMessageReceiver
 {
     public bool showDebugLogs = false;
+    public bool useLocalHost = false; 
+    private UserSessionHandler _userSessionHandler;
+
     public enum InteractableType
     {
         NONE = 0,
@@ -43,6 +47,7 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
         //        interactables.Add(go);
         //    }
         //}
+        _userSessionHandler = GetComponent<UserSessionHandler>();
 
         GameObject[] enemyBoxes = GameObject.FindGameObjectsWithTag("Destructible");
 
@@ -54,35 +59,41 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
     }
 
 
-    public void OnSniffInteraction(InteractableType type, GameObject go)
+    private void OnSniffInteraction(InteractableType type, GameObject go)
     {
-        string message = "Interaction Type: " + type + " Sender: " + go;
-
-        //messages.Add(message);
-
+       string message = $"Interaction Type: {type}, Sender: {go}";
        Debug.Log(message);
-
+        
         switch (type)
         {
             case InteractableType.NONE:
                 break;
             case InteractableType.GET_KEY:
+                SendInteraction(type, go);
                 break;
             case InteractableType.USE_KEY:
+                SendInteraction(type, go);
                 break;
             case InteractableType.DAMAGE_BOX: //wip
+                SendInteraction(type, go);
                 break;
             case InteractableType.BREAK_BOX: //wip
+                SendInteraction(type, go);
                 break;
             case InteractableType.OPEN_DOOR:
+                SendInteraction(type, go);
                 break;
             case InteractableType.SWITCH:
+                SendInteraction(type, go);
                 break;
             case InteractableType.PRESSURE_PLATE:
+                SendInteraction(type, go);
                 break;
             case InteractableType.GET_TREASURE:
+                SendInteraction(type, go);
                 break;
             case InteractableType.HEAL:
+                SendInteraction(type, go);
                 break;
             case InteractableType.SHOW_INFO_TEXT:
                 break;
@@ -94,11 +105,8 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
         Damageable senderScr = sender as Damageable;
         if (senderScr == null) return;
         
-        string message = "Type: " + type + " Sender: " + senderScr + " Msg: " + msg;
-
-        //messages.Add(message);
-
-        //Debug.Log(message);
+        string message = $"Interaction Type: {type}, Sender: {sender}, Msg: {msg}";
+        Debug.Log(message);
 
         switch (type)
         {
@@ -115,8 +123,27 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
         }
     }
 
-    public void SayTest()
+    void SendInteraction(InteractableType type, GameObject go)
     {
-        Debug.Log("test function");
+        // Create struct
+        Interaction interaction = new Interaction
+        {
+            InteractionId = UInt64.MaxValue,
+            SessionId = _userSessionHandler.session.SessionId,
+            PositionX = (int)go.transform.position.x,
+            PositionY = (int)go.transform.position.y,
+            PositionZ = (int)go.transform.position.z,
+            TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            InteractionType = type.ToString()
+        };
+        // Send player hit data to PHP sender
+        string json = interaction.ToJson();
+        if (showDebugLogs) Debug.Log(json);
+        PHP_Sender.Instance.SendData(useLocalHost ? PHP_Sender.Instance.localHostUrlAddData : PHP_Sender.Instance.apiUrlAddData,json, DataAddedSuccessfully);
+    }
+    
+    private void DataAddedSuccessfully(uint id)
+    {
+        Debug.Log("Data added successfully");
     }
 }
