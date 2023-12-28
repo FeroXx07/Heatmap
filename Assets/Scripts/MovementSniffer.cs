@@ -6,18 +6,24 @@ using UnityEngine;
 public class MovementSniffer : MonoBehaviour
 {
     public bool showDebugLogs = false;
+    public bool useLocalHost = false;
     GameObject player;
     public float registerTime;
     private float timer;
     Action<uint> callback;
-
+    UserSessionHandler sessionHandler;
+    bool SessionStarted;
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player");
+        sessionHandler = GetComponent<UserSessionHandler>();
+        sessionHandler.OnSessionStart += SessionStart;
     }
 
     void Update()
     {
+        if (!SessionStarted) return;
+
         timer += Time.deltaTime;
         if (timer > registerTime)
         {
@@ -29,14 +35,26 @@ public class MovementSniffer : MonoBehaviour
     void RegisterPosition()
     {
         Vector3 position = player.transform.position;
-        if (showDebugLogs) Debug.Log("Registering player position: " + position);
+
         Movement movement = new Movement();
-        movement.SessionId = 0;
+
+        movement.SessionId = sessionHandler.session.SessionId;
         movement.TimeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
         movement.PositionX = (int)position.x;
         movement.PositionY = (int)position.y;
         movement.PositionZ = (int)position.z;
+
         string json = JsonUtility.ToJson(movement);
-        //PHP_Sender.instance.SendData(json, callback);
+        if (showDebugLogs) Debug.Log(json);
+        PHP_Sender.Instance.SendData(useLocalHost ? PHP_Sender.Instance.localHostUrlAddData : PHP_Sender.Instance.apiUrlAddData, json, DataAddedSuccessfully);
+    }
+    private void DataAddedSuccessfully(uint id)
+    {
+        Debug.Log("Data added successfully");
+    }
+
+    void SessionStart(UInt64 id)
+    {
+        SessionStarted = true;
     }
 }

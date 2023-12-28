@@ -10,7 +10,9 @@ public class UserSessionHandler : MonoBehaviour
     public bool useLocalHost = false; 
     public UserSO user;
     public User userData;
-    
+
+    public Action<UInt64> OnSessionStart;
+
     private const string apiUrlAddUser = "https://citmalumnes.upc.es/~brandonam/addUser.php/POST";
     private const string apiUrlAddSession = "https://citmalumnes.upc.es/~brandonam/addSession.php/POST";
     private const string localHostUrlAddUser = "http://localhost/delivery3/addUser.php";
@@ -60,6 +62,7 @@ public class UserSessionHandler : MonoBehaviour
     private void OnSessionLogin(uint newId)
     {
         session.SessionId = newId;
+        OnSessionStart(newId);
     }
 
     private void EndSession()
