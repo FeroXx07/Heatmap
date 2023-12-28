@@ -36,15 +36,17 @@ public class MovementSniffer : MonoBehaviour
     {
         Vector3 position = player.transform.position;
 
-        Movement movement = new Movement();
+        Movement movement = new Movement
+        {
+            MovementId = UInt64.MaxValue,
+            SessionId = sessionHandler.session.SessionId,
+            TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            PositionX = (int)position.x,
+            PositionY = (int)position.y,
+            PositionZ = (int)position.z
+        };
 
-        movement.SessionId = sessionHandler.session.SessionId;
-        movement.TimeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
-        movement.PositionX = (int)position.x;
-        movement.PositionY = (int)position.y;
-        movement.PositionZ = (int)position.z;
-
-        string json = JsonUtility.ToJson(movement);
+        string json = movement.ToJson();
         if (showDebugLogs) Debug.Log(json);
         PHP_Sender.Instance.SendData(useLocalHost ? PHP_Sender.Instance.localHostUrlAddData : PHP_Sender.Instance.apiUrlAddData, json, DataAddedSuccessfully);
     }

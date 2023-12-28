@@ -24,6 +24,7 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
         HEAL = 8,
         SHOW_INFO_TEXT = 9,
         DAMAGE_BOX = 10,
+        FINISH = 11
     }
 
     public static Action<InteractableType, GameObject> OnInteraction;
