@@ -31,20 +31,22 @@ public class PlayerHitSniffer : MonoBehaviour, IMessageReceiver
             case MessageType.DAMAGED:
                 {
                     Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                    SendHit(damageData);
+                    string timeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+                    SendHit(damageData, timeStamp);
                 }
                 break;
             case MessageType.DEAD:
                 {
                     Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                    SendHit(damageData);
-                    SendDeath(damageData);
+                    string timeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+                    SendHit(damageData,timeStamp);
+                    SendDeath(damageData, timeStamp);
                 }
                 break;
         }
     }
 
-    void SendHit( Damageable.DamageMessage damageData)
+    void SendHit( Damageable.DamageMessage damageData, string timeStamp)
     {
         // Create struct
         Hit hit = new Hit
@@ -54,7 +56,7 @@ public class PlayerHitSniffer : MonoBehaviour, IMessageReceiver
             PositionX = (int)player.transform.position.x,
             PositionY = (int)player.transform.position.y,
             PositionZ = (int)player.transform.position.z,
-            TimeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+            TimeStamp = timeStamp,
             AttackType = $"{damageData.damager}",
             Damage = damageData.amount,
             Hitter = $"{damageData.damager.gameObject.name}",
@@ -69,7 +71,7 @@ public class PlayerHitSniffer : MonoBehaviour, IMessageReceiver
         PHP_Sender.Instance.SendData(useLocalHost ? PHP_Sender.Instance.localHostUrlAddData : PHP_Sender.Instance.apiUrlAddData,json, DataAddedSuccessfully);
     }
 
-    void SendDeath(Damageable.DamageMessage damageData)
+    void SendDeath(Damageable.DamageMessage damageData, string timeStamp)
     {
         Death death = new Death
         {
@@ -78,7 +80,7 @@ public class PlayerHitSniffer : MonoBehaviour, IMessageReceiver
             PositionX = (int)player.transform.position.x,
             PositionY = (int)player.transform.position.y,
             PositionZ = (int)player.transform.position.z,
-            TimeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+            TimeStamp = timeStamp,
             DeathType = "PlayerDeath"
         };
         string json = death.ToJson();

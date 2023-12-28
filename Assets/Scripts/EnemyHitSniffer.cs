@@ -40,20 +40,22 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
             case MessageType.DAMAGED:
             {
                 Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                SendHit(senderObj.gameObject, damageData);
+                string timeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+                SendHit(senderObj.gameObject, damageData, timeStamp);
             }
                 break;
             case MessageType.DEAD:
             {
                 Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                SendHit(senderObj.gameObject, damageData);
-                SendDeath(senderObj.gameObject, damageData);
+                string timeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+                SendHit(senderObj.gameObject, damageData, timeStamp);
+                SendDeath(senderObj.gameObject, damageData, timeStamp);
             }
                 break;
         }
     }
     
-    void SendHit(GameObject enemy, Damageable.DamageMessage damageData)
+    void SendHit(GameObject enemy, Damageable.DamageMessage damageData, string timeStamp)
     {
         // Create struct
         Hit hit = new Hit
@@ -63,7 +65,7 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
             PositionX = (int)enemy.transform.position.x,
             PositionY = (int)enemy.transform.position.y,
             PositionZ = (int)enemy.transform.position.z,
-            TimeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+            TimeStamp = timeStamp,
             AttackType = $"{damageData.damager}",
             Damage = damageData.amount,
             Hitter = $"{damageData.damager.gameObject.name}",
@@ -78,7 +80,7 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
         PHP_Sender.Instance.SendData(useLocalHost ? PHP_Sender.Instance.localHostUrlAddData : PHP_Sender.Instance.apiUrlAddData,json, DataAddedSuccessfully);
     }
 
-    void SendDeath(GameObject enemy, Damageable.DamageMessage damageData)
+    void SendDeath(GameObject enemy, Damageable.DamageMessage damageData, string timeStamp)
     {
         Death death = new Death
         {
@@ -87,7 +89,7 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
             PositionX = (int)enemy.transform.position.x,
             PositionY = (int)enemy.transform.position.y,
             PositionZ = (int)enemy.transform.position.z,
-            TimeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+            TimeStamp = timeStamp,
             DeathType = "EnemyDeath"
         };
         string json = death.ToJson();
