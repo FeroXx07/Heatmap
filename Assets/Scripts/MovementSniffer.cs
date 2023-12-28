@@ -33,9 +33,9 @@ public class MovementSniffer : MonoBehaviour
         Movement movement = new Movement();
         movement.SessionId = 0;
         movement.TimeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
-        movement.PostionX = (int)position.x;
-        movement.PostionY = (int)position.y;
-        movement.PostionZ = (int)position.z;
+        movement.PositionX = (int)position.x;
+        movement.PositionY = (int)position.y;
+        movement.PositionZ = (int)position.z;
         string json = JsonUtility.ToJson(movement);
         //PHP_Sender.instance.SendData(json, callback);
     }

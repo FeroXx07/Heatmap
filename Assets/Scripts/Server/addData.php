@@ -8,23 +8,13 @@ $conn = $database->connect();
 // Check if the connection was successful
 if ($conn) {
     // Assuming you receive JSON data as a POST request
-    //$json_data = file_get_contents('php://input');
-    $json_data = "{'Table':'User','Id':18446744073709551615,'Name':'Ali','Sex':'Male','Age':23,'Country':'Spain','DateCreated':'2023-12-27T23:36:45'}";
+    $json_data = file_get_contents('php://input');
     $data = json_decode($json_data, true);
     
     if ($data) {
         
         $table_name = $data["Table"];
-        // Convert dateCreatedStamp to MySQL DATETIME format
-        $dateCreatedStamp = date("Y-m-d H:i:s", strtotime($data["dateCreatedStamp"]));
-
-        // Remove dateCreatedStamp from data array
-        // Ali: Unecessary line, why would you remove and add, why not replace directly?
-        //unset($data["dateCreatedStamp"]);
-        unset($data["id"]);
-        
-        // Add the converted dateCreatedStamp back to the data array
-        $data["dateCreatedStamp"] = $dateCreatedStamp;
+        unset($data["Table"]);
 
         // Initialize arrays to store column names and values
         $columns = array();
