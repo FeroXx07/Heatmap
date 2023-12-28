@@ -9,7 +9,6 @@ namespace Gamekit3D
     {
         public new AudioSource audio;
 
-
         void OnTriggerEnter(Collider other)
         {
             var pc = other.GetComponent<PlayerController>();

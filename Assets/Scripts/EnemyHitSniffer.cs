@@ -40,22 +40,21 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
             case MessageType.DAMAGED:
             {
                 Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                string timeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+                string timeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 SendHit(senderObj.gameObject, damageData, timeStamp);
             }
                 break;
             case MessageType.DEAD:
             {
                 Damageable.DamageMessage damageData = (Damageable.DamageMessage)msg;
-                string timeStamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
-                SendHit(senderObj.gameObject, damageData, timeStamp);
-                SendDeath(senderObj.gameObject, damageData, timeStamp);
+                string timeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                SendHit(senderObj.gameObject, damageData, timeStamp, true);
             }
                 break;
         }
     }
     
-    void SendHit(GameObject enemy, Damageable.DamageMessage damageData, string timeStamp)
+    void SendHit(GameObject enemy, Damageable.DamageMessage damageData, string timeStamp, bool isDeath = false)
     {
         // Create struct
         Hit hit = new Hit
@@ -72,30 +71,15 @@ public class EnemyHitSniffer : MonoBehaviour, IMessageReceiver
             Hitted = enemy.name,
             SourcePositionX = (int)damageData.damageSource.x,
             SourcePositionY = (int)damageData.damageSource.y,
-            SourcePositionZ = (int)damageData.damageSource.z
+            SourcePositionZ = (int)damageData.damageSource.z,
+            Mortal = (short)(isDeath ? 1:0)
         };
         // Send player hit data to PHP sender
         string json = hit.ToJson();
         if (showDebugLogs) Debug.Log(json);
         PHP_Sender.Instance.SendData(useLocalHost ? PHP_Sender.Instance.localHostUrlAddData : PHP_Sender.Instance.apiUrlAddData,json, DataAddedSuccessfully);
     }
-
-    void SendDeath(GameObject enemy, Damageable.DamageMessage damageData, string timeStamp)
-    {
-        Death death = new Death
-        {
-            DeathId = UInt64.MaxValue,
-            SessionId = _userSessionHandler.session.SessionId,
-            PositionX = (int)enemy.transform.position.x,
-            PositionY = (int)enemy.transform.position.y,
-            PositionZ = (int)enemy.transform.position.z,
-            TimeStamp = timeStamp,
-            DeathType = "EnemyDeath"
-        };
-        string json = death.ToJson();
-        if (showDebugLogs) Debug.Log(json);
-        PHP_Sender.Instance.SendData(useLocalHost ? PHP_Sender.Instance.localHostUrlAddData : PHP_Sender.Instance.apiUrlAddData,json, DataAddedSuccessfully);
-    }
+    
 
     private void DataAddedSuccessfully(uint id)
     {

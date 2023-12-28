@@ -1,6 +1,7 @@
 using UnityEngine;
 using Gamekit3D.Message;
 using System.Collections;
+using UnityEngine.Events;
 using UnityEngine.XR.WSA;
 
 namespace Gamekit3D
@@ -100,6 +101,8 @@ namespace Gamekit3D
         // Tags
         readonly int m_HashBlockInput = Animator.StringToHash("BlockInput");
 
+        public UnityEvent<GameObject> OnVolumeDie = new UnityEvent<GameObject>();
+        
         protected bool IsMoveInput
         {
             get { return !Mathf.Approximately(m_Input.MoveInput.sqrMagnitude, 0f); }
@@ -677,6 +680,8 @@ namespace Gamekit3D
             m_VerticalSpeed = 0f;
             m_Respawning = true;
             m_Damageable.isInvulnerable = true;
+
+            OnVolumeDie?.Invoke(gameObject);
         }
     }
 }

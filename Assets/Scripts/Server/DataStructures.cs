@@ -57,13 +57,7 @@ namespace Server
         public int SourcePositionX;
         public int SourcePositionY;
         public int SourcePositionZ;
-    }
-
-    [System.Serializable]
-    public class Death : PositionTable
-    {
-        [NonSerialized] public UInt64 DeathId;
-        public string DeathType;
+        public short Mortal;
     }
 
     [System.Serializable]
@@ -71,13 +65,6 @@ namespace Server
     {
         [NonSerialized] public UInt64 InteractionId;
         public string interactionType;
-    }
-
-    [System.Serializable]
-    public class Kill : PositionTable
-    {
-        [NonSerialized] public UInt64 KillId;
-        public string enemyType;
     }
 
     [System.Serializable]
