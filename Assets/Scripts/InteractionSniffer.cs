@@ -96,6 +96,9 @@ public class InteractionSniffer : MonoBehaviour, IMessageReceiver
             case InteractableType.HEAL:
                 SendInteraction(type, go);
                 break;
+            case InteractableType.FINISH:
+                SendInteraction(type, go);
+                break;
             case InteractableType.SHOW_INFO_TEXT:
                 break;
         }

@@ -1,6 +1,6 @@
 <?php
 class Database {
-    private $host = "citmalumnes.upc.es";
+    private $host = "localhost:3306";
     private $username = "brandonam";
     private $password = "DA7UZDax6G7g";
     private $dbname = "brandonam";

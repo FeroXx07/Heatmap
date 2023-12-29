@@ -43,7 +43,10 @@ if ($conn) {
             if ($stmt->execute()) {
                 $resultSet = $stmt->fetchAll();
                 if ($resultSet && count($resultSet) > 0) {
-                    echo "Entry exists in the table for the provided data.";
+                    // Entry already exists, retrieve the ID
+                    $firstRow = $resultSet[0]; // Get the first row
+                    $existingId = $firstRow['Id']; // Assuming the column name is 'Id'
+                    echo "Entry already exists in the table. ID: $existingId";
                 } else {
                     echo "Entry does not exist in the table for the provided data.";
 

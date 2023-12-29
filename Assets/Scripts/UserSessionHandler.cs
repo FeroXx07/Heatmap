@@ -56,7 +56,7 @@ public class UserSessionHandler : MonoBehaviour
         session.End = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         string json = session.ToJson();
         Debug.LogWarning("InitSession");
-        PHP_Sender.Instance.SendData(useLocalHost ? localHostUrlAddSession : apiUrlAddUser, json, OnSessionLogin);
+        PHP_Sender.Instance.SendData(useLocalHost ? localHostUrlAddSession : apiUrlAddSession, json, OnSessionLogin);
     }
 
     private void OnSessionLogin(uint newId)
@@ -76,7 +76,7 @@ public class UserSessionHandler : MonoBehaviour
         session.End = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         string json = session.ToJson();
         Debug.LogWarning(json);
-        PHP_Sender.Instance.SendData(useLocalHost ? localHostUrlAddSession : apiUrlAddUser, json, OnSessionLogout);
+        PHP_Sender.Instance.SendData(useLocalHost ? localHostUrlAddSession : apiUrlAddSession, json, OnSessionLogout);
     }
 
     private void OnSessionLogout(uint newId)
