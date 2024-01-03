@@ -13,7 +13,7 @@ public class HeatmapEditorWindow : EditorWindow
     private int _selectedGranularityTypeIndex = 0;
     private string _query = "";
     
-    private readonly string _localHostAPI ="http://localhost/delivery3/getQuery.php"; // Replace with your actual local API URL
+    private readonly string _localHostAPI ="http://localhost/delivery3/getQuery.php";
     private readonly string _globalAPI = "https://citmalumnes.upc.es/~brandonam/getQuery.php/POST";
     private bool _useLocalHost = false; 
     private UnityWebRequest _webRequest;
@@ -22,6 +22,9 @@ public class HeatmapEditorWindow : EditorWindow
     public static event QueryEvent OnQueryRequested;
     public static event QueryEvent OnQueryDone;
     public static event QueryEvent OnQueryFailed;
+    
+    private int _selectedQueryIndex = 0;
+    private string[] _availableQueries;
     
     #endregion
 
@@ -42,8 +45,9 @@ public class HeatmapEditorWindow : EditorWindow
     private float _objectSize;
     #endregion    
     
-    private QueryHandeler _queryHandeler = new QueryHandeler();
+    private QueryHandeler _queryHandler = new QueryHandeler();
     private HeatmapDrawer _heatmapDrawer = new HeatmapDrawer();
+    private QueryStructureOne _currentQueryStructure;
 
     [MenuItem("Tools/Heatmap Editor")]
     public static void ShowWindow()
@@ -60,11 +64,11 @@ public class HeatmapEditorWindow : EditorWindow
         
         // Granularity type dropdown
         _selectedGranularityTypeIndex = EditorGUILayout.Popup("Granularity Type:", _selectedGranularityTypeIndex, _granularityTypes);
-        _queryHandeler.granularityType =(QueryHandeler.GranularityType) _selectedGranularityTypeIndex;
+        _queryHandler.granularityType =(QueryHandeler.GranularityType) _selectedGranularityTypeIndex;
         
         // Query type dropdown
         _selectedQueryTypeIndex = EditorGUILayout.Popup("Query Type:", _selectedQueryTypeIndex, _queryTypes);
-        _query = _queryHandeler.GetQueryType(_queryTypes[_selectedQueryTypeIndex]);
+        _query = _queryHandler.GetQueryType(_queryTypes[_selectedQueryTypeIndex]);
         
         // disable button if query in progress
         EditorGUI.BeginDisabledGroup(_query != null && _webRequest != null && !_webRequest.isDone);
@@ -132,11 +136,9 @@ public class HeatmapEditorWindow : EditorWindow
         else
         {
             Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
-            // Handle the response
             OnQueryDone?.Invoke(_webRequest.downloadHandler.text);
         }
 
-        // Cleanup
         _webRequest.Dispose();
         _webRequest = null;
 
@@ -145,10 +147,15 @@ public class HeatmapEditorWindow : EditorWindow
 
     private void OnEnable()
     {
-        
+        OnQueryDone += _queryHandler.ProcessQueryReceived;
     }
 
     private void OnDisable()
+    {
+        OnQueryDone -= _queryHandler.ProcessQueryReceived;
+    }
+
+    void DisplayData()
     {
         
     }

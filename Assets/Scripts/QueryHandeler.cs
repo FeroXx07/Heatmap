@@ -6,45 +6,54 @@ using UnityEngine;
 
 public class QueryHandeler
 {
-
+  private List<QueryStructureOne> _queryList = new List<QueryStructureOne>();
+  private QueryStructureOne _currentQueryStructure;
   
   public float granularity = 1.0f;
-
   private string Granularity => granularity.ToString().Replace(',', '.');
-  
   public GranularityType granularityType = GranularityType.ROUND;
 
-  public QueryStructureOne ProcessQueryReceived(string result)
+  public List<QueryStructureOne> GetQueryList()
   {
-    QueryStructureOne _currentQueryStructure = new QueryStructureOne();
-    // Split the received string into lines
-    string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
-    // Parse the received lines into arrays
-    foreach (string row in rows)
-    {
-      string[] rowData = row.Split('\n');
-            
-      float.TryParse(rowData[0].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-        out float posX);
-      float.TryParse(rowData[1].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-        out float posY);
-      float.TryParse(rowData[2].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-        out float posZ);
-      // Parse total damage and normalized damage
-      float totalDamage = float.Parse(rowData[3].Split(':')[1]);
-      float.TryParse(rowData[4].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-        out float parseResult);
-      float normalizedDamage = parseResult;
-      _currentQueryStructure.InsertData(posX, posY, posZ, normalizedDamage);
-    }
-    
-    // Display retrieved data (for demonstration)
-    Debug.Log("Positions:");
-    for (int i = 0; i < _currentQueryStructure.Position.Count; i++)
-    {
-      Debug.Log($"Position X: {_currentQueryStructure.Position[i].x}, Position Y: {_currentQueryStructure.Position[i].y}, Position Z: {_currentQueryStructure.Position[i].z}, Value: {_currentQueryStructure.NormalizedValue[i]}");
-    }
-    return _currentQueryStructure;
+    return _queryList;
+  }
+
+  public void ClearQueryList()
+  {
+    _queryList.Clear();
+  }
+  
+  public void ProcessQueryReceived(string result)
+  {
+      QueryStructureOne _currentQueryStructure = new QueryStructureOne();
+      // Split the received string into lines
+      string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+      // Parse the received lines into arrays
+      foreach (string row in rows)
+      {
+        string[] rowData = row.Split('\n');
+              
+        float.TryParse(rowData[0].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+          out float posX);
+        float.TryParse(rowData[1].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+          out float posY);
+        float.TryParse(rowData[2].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+          out float posZ);
+        // Parse total damage and normalized damage
+        float totalDamage = float.Parse(rowData[3].Split(':')[1]);
+        float.TryParse(rowData[4].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+          out float parseResult);
+        float normalizedDamage = parseResult;
+        _currentQueryStructure.InsertData(posX, posY, posZ, normalizedDamage);
+      }
+      
+      // Display retrieved data (for demonstration)
+      Debug.Log("Positions:");
+      for (int i = 0; i < _currentQueryStructure.Position.Count; i++)
+      {
+        Debug.Log($"Position X: {_currentQueryStructure.Position[i].x}, Position Y: {_currentQueryStructure.Position[i].y}, Position Z: {_currentQueryStructure.Position[i].z}, Value: {_currentQueryStructure.NormalizedValue[i]}");
+      }
+      _queryList.Add(_currentQueryStructure);
   }
   public string GetQueryType(string queryType)
   {
@@ -63,9 +72,6 @@ public class QueryHandeler
         case "EnemyDamagePositionNormalized":
           query = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit WHERE Hitter != \"Staff\" GROUP BY GridPositionX, GridPositionY, GridPositionZ;";
           break;
-
-        // Add more cases for other query types if needed
-
         default:
           Debug.LogError($"Unsupported query type: {queryType}");
           return null;
