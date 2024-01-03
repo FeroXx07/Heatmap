@@ -56,40 +56,40 @@ public class QueryHandeler
       _queryList.Clear();
   }
   
-  public void ProcessQueryReceived(string result, string name, uint id)
+  public void ProcessQueryReceived(string result, uint id)
   {
        QueryDataStructure q = _queryList.Find(s => s.id == id);
        if (q == null)
          Debug.LogError("Null query");
            
-      // Split the received string into lines
-      string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
-      // Parse the received lines into arrays
-      foreach (string row in rows)
-      {
-        string[] rowData = row.Split('\n');
-              
-        float.TryParse(rowData[0].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-          out float posX);
-        float.TryParse(rowData[1].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-          out float posY);
-        float.TryParse(rowData[2].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-          out float posZ);
-        // Parse total damage and normalized damage
-        float totalDamage = float.Parse(rowData[3].Split(':')[1]);
-        float.TryParse(rowData[4].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-          out float parseResult);
-        float normalizedDamage = parseResult;
-        q.InsertData(posX, posY, posZ, normalizedDamage);
-      }
+       // Split the received string into lines
+       string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+       // Parse the received lines into arrays
+       foreach (string row in rows)
+       {
+           string[] rowData = row.Split('\n');
+                
+           float.TryParse(rowData[0].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+             out float posX);
+           float.TryParse(rowData[1].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+             out float posY);
+           float.TryParse(rowData[2].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+             out float posZ);
+           // Parse total damage and normalized damage
+           float totalDamage = float.Parse(rowData[3].Split(':')[1]);
+           float.TryParse(rowData[4].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+             out float parseResult);
+           float normalizedDamage = parseResult;
+           q.InsertData(posX, posY, posZ, normalizedDamage);
+       }
       
-      // Display retrieved data (for demonstration)
-      Debug.Log("Positions:");
-      for (int i = 0; i < q.Position.Count; i++)
-      {
-        Debug.Log($"Position X: {q.Position[i].x}, Position Y: {q.Position[i].y}, Position Z: {q.Position[i].z}, Value: {q.NormalizedValue[i]}");
-      }
-      _queryList.Add(q);
+       // Display retrieved data (for demonstration)
+       Debug.Log("Positions:");
+       for (int i = 0; i < q.Position.Count; i++)
+       {
+          Debug.Log($"Position X: {q.Position[i].x}, Position Y: {q.Position[i].y}, Position Z: {q.Position[i].z}, Value: {q.NormalizedValue[i]}");
+       }
+       _queryList.Add(q);
   }
   public string GetQueryType(string queryType)
   {

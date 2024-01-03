@@ -19,11 +19,9 @@ public class HeatmapEditorWindow : EditorWindow
     private readonly string _globalAPI = "https://citmalumnes.upc.es/~brandonam/getQuery.php/POST";
     private bool _useLocalHost = false; 
     private UnityWebRequest _webRequest;
-
-    public delegate void QueryEvent(string query, string name, uint id);
-    //public static event QueryEvent OnQueryRequested;
-    public static event QueryEvent OnQueryDone;
-    public static event QueryEvent OnQueryFailed;
+    public static Action<string, string> OnQueryRequested;
+    public static Action<string, uint> OnQueryDone;
+    public static Action<string, uint> OnQueryFailed;
     #endregion
 
     #region  draw properties
@@ -77,8 +75,10 @@ public class HeatmapEditorWindow : EditorWindow
         List<QueryDataStructure> listQueries = _queryHandler.GetQueryList();
         if (listQueries.Count > 0)
         {
-            string[] availableQueries = new[] { listQueries.ToArray().ToString() };
-            _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex, availableQueries);
+            List<string> availableQueries = new List<string>();
+            foreach (var q in listQueries)
+                availableQueries.Add($"{q.name}_{q.id}");
+            _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex, availableQueries.ToArray());
             _currentQueryDataStructure = _queryHandler.GetQueryList().ElementAt(_selectedQueryIndex);
             GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel);
         }
@@ -86,7 +86,7 @@ public class HeatmapEditorWindow : EditorWindow
         // disable button if query in progress
         EditorGUI.BeginDisabledGroup(_query != null && _webRequest != null && !_webRequest.isDone);
         // Send Query
-        if (GUILayout.Button("Send Query"))
+        if (GUILayout.Button("Send Query") && _webRequest == null)
         {
             RequestQuery(_query, _queryTypes[_selectedQueryTypeIndex]);
             _currentProcessedQueryType = _selectedQueryTypeIndex;
@@ -132,7 +132,7 @@ public class HeatmapEditorWindow : EditorWindow
             _webRequest.downloadHandler = new DownloadHandlerBuffer();
             _webRequest.SetRequestHeader("Content-Type", "application/json");
             _webRequest.SendWebRequest();
-            //OnQueryRequested?.Invoke(query, name);
+            OnQueryRequested?.Invoke(query, name);
             _currentProccesedQueryId = _queryHandler.SaveNewQuery(name);
             EditorApplication.update += EditorUpdate;
         }
@@ -151,12 +151,12 @@ public class HeatmapEditorWindow : EditorWindow
         if (_webRequest.result == UnityWebRequest.Result.ConnectionError)
         {
             Debug.LogError($"HTTP Request failed with error: {_webRequest.error}");
-            OnQueryFailed?.Invoke(_webRequest.error, _queryTypes[_selectedQueryTypeIndex], _currentProccesedQueryId);
+            OnQueryFailed?.Invoke(_webRequest.error, _currentProccesedQueryId);
         }
         else
         {
             Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
-            OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _queryTypes[_selectedQueryTypeIndex], _currentProccesedQueryId);
+            OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _currentProccesedQueryId);
         }
 
         _webRequest.Dispose();
