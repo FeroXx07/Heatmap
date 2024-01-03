@@ -4,28 +4,64 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
+public class QueryDataStructure
+{
+    public QueryDataStructure(string name, uint id)
+    {
+        this.name = name;
+        this.id = id;
+    }
+    public void InsertData(float x, float y, float z, float v)
+    {
+        Position.Add(new Vector3(x, y, z));
+        NormalizedValue.Add(v);
+    }
+    
+    public uint id = UInt32.MaxValue;
+    public string name;
+    public List<Vector3> Position = new List<Vector3>();
+    public List<float> NormalizedValue = new List<float>();
+}
+
 public class QueryHandeler
 {
-  private List<QueryStructureOne> _queryList = new List<QueryStructureOne>();
-  private QueryStructureOne _currentQueryStructure;
+  private List<QueryDataStructure> _queryList = new List<QueryDataStructure>();
   
-  public float granularity = 1.0f;
+  private uint id = 0;
+
+  private uint GetNewId()
+  {
+      id++;
+      return id;
+  }
+  
+  private float granularity = 1.0f;
   private string Granularity => granularity.ToString().Replace(',', '.');
   public GranularityType granularityType = GranularityType.ROUND;
-
-  public List<QueryStructureOne> GetQueryList()
+  public List<QueryDataStructure> GetQueryList()
   {
-    return _queryList;
+      return _queryList;
   }
 
-  public void ClearQueryList()
+  public uint SaveNewQuery(string queryName)
   {
-    _queryList.Clear();
+      uint id = GetNewId();
+      QueryDataStructure q = new QueryDataStructure(queryName, id);
+      _queryList.Add(q);
+      return id;
   }
   
-  public void ProcessQueryReceived(string result)
+  public void ClearQueryList()
   {
-      QueryStructureOne _currentQueryStructure = new QueryStructureOne();
+      _queryList.Clear();
+  }
+  
+  public void ProcessQueryReceived(string result, string name, uint id)
+  {
+       QueryDataStructure q = _queryList.Find(s => s.id == id);
+       if (q == null)
+         Debug.LogError("Null query");
+           
       // Split the received string into lines
       string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
       // Parse the received lines into arrays
@@ -44,16 +80,16 @@ public class QueryHandeler
         float.TryParse(rowData[4].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
           out float parseResult);
         float normalizedDamage = parseResult;
-        _currentQueryStructure.InsertData(posX, posY, posZ, normalizedDamage);
+        q.InsertData(posX, posY, posZ, normalizedDamage);
       }
       
       // Display retrieved data (for demonstration)
       Debug.Log("Positions:");
-      for (int i = 0; i < _currentQueryStructure.Position.Count; i++)
+      for (int i = 0; i < q.Position.Count; i++)
       {
-        Debug.Log($"Position X: {_currentQueryStructure.Position[i].x}, Position Y: {_currentQueryStructure.Position[i].y}, Position Z: {_currentQueryStructure.Position[i].z}, Value: {_currentQueryStructure.NormalizedValue[i]}");
+        Debug.Log($"Position X: {q.Position[i].x}, Position Y: {q.Position[i].y}, Position Z: {q.Position[i].z}, Value: {q.NormalizedValue[i]}");
       }
-      _queryList.Add(_currentQueryStructure);
+      _queryList.Add(q);
   }
   public string GetQueryType(string queryType)
   {

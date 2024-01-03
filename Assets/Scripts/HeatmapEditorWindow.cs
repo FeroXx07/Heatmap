@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
@@ -18,14 +20,10 @@ public class HeatmapEditorWindow : EditorWindow
     private bool _useLocalHost = false; 
     private UnityWebRequest _webRequest;
 
-    public delegate void QueryEvent(string query);
-    public static event QueryEvent OnQueryRequested;
+    public delegate void QueryEvent(string query, string name, uint id);
+    //public static event QueryEvent OnQueryRequested;
     public static event QueryEvent OnQueryDone;
     public static event QueryEvent OnQueryFailed;
-    
-    private int _selectedQueryIndex = 0;
-    private string[] _availableQueries;
-    
     #endregion
 
     #region  draw properties
@@ -40,6 +38,7 @@ public class HeatmapEditorWindow : EditorWindow
     private Color _minColor;
     private Color _maxColor;
     private Material _material;
+    private Gradient _gradient = new Gradient();
     
     private GameObject _prefab;
     private float _objectSize;
@@ -47,8 +46,12 @@ public class HeatmapEditorWindow : EditorWindow
     
     private QueryHandeler _queryHandler = new QueryHandeler();
     private HeatmapDrawer _heatmapDrawer = new HeatmapDrawer();
-    private QueryStructureOne _currentQueryStructure;
-
+    
+    private QueryDataStructure _currentQueryDataStructure;
+    private int _selectedQueryIndex = 0;
+    
+    private int _currentProcessedQueryType = 0;
+    private uint _currentProccesedQueryId = UInt32.MaxValue;
     [MenuItem("Tools/Heatmap Editor")]
     public static void ShowWindow()
     {
@@ -70,12 +73,23 @@ public class HeatmapEditorWindow : EditorWindow
         _selectedQueryTypeIndex = EditorGUILayout.Popup("Query Type:", _selectedQueryTypeIndex, _queryTypes);
         _query = _queryHandler.GetQueryType(_queryTypes[_selectedQueryTypeIndex]);
         
+        // Queries available popup
+        List<QueryDataStructure> listQueries = _queryHandler.GetQueryList();
+        if (listQueries.Count > 0)
+        {
+            string[] availableQueries = new[] { listQueries.ToArray().ToString() };
+            _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex, availableQueries);
+            _currentQueryDataStructure = _queryHandler.GetQueryList().ElementAt(_selectedQueryIndex);
+            GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel);
+        }
+        
         // disable button if query in progress
         EditorGUI.BeginDisabledGroup(_query != null && _webRequest != null && !_webRequest.isDone);
         // Send Query
         if (GUILayout.Button("Send Query"))
         {
-            RequestQuery(_query);
+            RequestQuery(_query, _queryTypes[_selectedQueryTypeIndex]);
+            _currentProcessedQueryType = _selectedQueryTypeIndex;
         }
         EditorGUI.EndDisabledGroup();
         
@@ -84,6 +98,11 @@ public class HeatmapEditorWindow : EditorWindow
         _heatmapType = (HeatmapType) EditorGUILayout.EnumPopup("Heatmap type",_heatmapType);
         
         DisplayHeatMapTypes(_heatmapType);
+        
+        if (GUILayout.Button("Clear queries"))
+        {
+            _queryHandler.ClearQueryList();
+        }
     }
 
     void DisplayHeatMapTypes(HeatmapType type)
@@ -96,13 +115,14 @@ public class HeatmapEditorWindow : EditorWindow
                 _material = EditorGUILayout.ObjectField("Shader Material", _material, typeof(Material), false) as Material;
                 break;
             case HeatmapType.CUBES:
+                _gradient = EditorGUILayout.GradientField("Gradient", _gradient);
                 _prefab = EditorGUILayout.ObjectField("Prefab:",_prefab,typeof(GameObject),false)as GameObject;
                 _objectSize = EditorGUILayout.FloatField("Size", _objectSize);
                 break;
         }
     }
-   
-    public void RequestQuery(string query)
+
+    private void RequestQuery(string query, string name)
     {
         try
         {
@@ -112,7 +132,8 @@ public class HeatmapEditorWindow : EditorWindow
             _webRequest.downloadHandler = new DownloadHandlerBuffer();
             _webRequest.SetRequestHeader("Content-Type", "application/json");
             _webRequest.SendWebRequest();
-            OnQueryRequested?.Invoke(query);
+            //OnQueryRequested?.Invoke(query, name);
+            _currentProccesedQueryId = _queryHandler.SaveNewQuery(name);
             EditorApplication.update += EditorUpdate;
         }
         catch (Exception e)
@@ -127,16 +148,15 @@ public class HeatmapEditorWindow : EditorWindow
         if (!_webRequest.isDone)
             return;
         
-        
-        if (_webRequest.isNetworkError || _webRequest.isHttpError)
+        if (_webRequest.result == UnityWebRequest.Result.ConnectionError)
         {
             Debug.LogError($"HTTP Request failed with error: {_webRequest.error}");
-            OnQueryFailed?.Invoke(_webRequest.error);
+            OnQueryFailed?.Invoke(_webRequest.error, _queryTypes[_selectedQueryTypeIndex], _currentProccesedQueryId);
         }
         else
         {
             Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
-            OnQueryDone?.Invoke(_webRequest.downloadHandler.text);
+            OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _queryTypes[_selectedQueryTypeIndex], _currentProccesedQueryId);
         }
 
         _webRequest.Dispose();
