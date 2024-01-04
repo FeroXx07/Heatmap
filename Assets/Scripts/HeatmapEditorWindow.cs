@@ -50,6 +50,7 @@ public class HeatmapEditorWindow : EditorWindow
     
     private int _currentProcessedQueryType = 0;
     private uint _currentProccesedQueryId = UInt32.MaxValue;
+
     [MenuItem("Tools/Heatmap Editor")]
     public static void ShowWindow()
     {
@@ -73,23 +74,33 @@ public class HeatmapEditorWindow : EditorWindow
         
         // Queries available popup
         List<QueryDataStructure> listQueries = _queryHandler.GetQueryList();
-        if (listQueries.Count > 0)
+        bool hasData = listQueries.Count > 0 ? true : false;
+        if (hasData)
         {
             List<string> availableQueries = new List<string>();
             foreach (var q in listQueries)
                 availableQueries.Add($"{q.name}_{q.id}");
             _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex, availableQueries.ToArray());
-            _currentQueryDataStructure = _queryHandler.GetQueryList().ElementAt(_selectedQueryIndex);
+            _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
             GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel);
         }
         
         // disable button if query in progress
         EditorGUI.BeginDisabledGroup(_query != null && _webRequest != null && !_webRequest.isDone);
         // Send Query
-        if (GUILayout.Button("Send Query") && _webRequest == null)
+        if (GUILayout.Button("Send query") && _webRequest == null)
         {
             RequestQuery(_query, _queryTypes[_selectedQueryTypeIndex]);
             _currentProcessedQueryType = _selectedQueryTypeIndex;
+        }
+        EditorGUI.EndDisabledGroup();
+        
+        EditorGUI.BeginDisabledGroup(!hasData);
+        // Send Query
+        if (GUILayout.Button("Clear selected query"))
+        {
+            _queryHandler.ClearQuery(listQueries.ElementAt(_selectedQueryIndex));
+            _heatmapDrawer.RemoveHeatmapCube(listQueries.ElementAt(_selectedQueryIndex));
         }
         EditorGUI.EndDisabledGroup();
         
@@ -143,6 +154,12 @@ public class HeatmapEditorWindow : EditorWindow
         }
     }
 
+    private void QueryDone(string result, uint id)
+    {
+        QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id);
+        _heatmapDrawer.CreateHeatmapCube(q, _gradient, _prefab, 1.0f);
+    }
+
     private void EditorUpdate()
     {
         if (!_webRequest.isDone)
@@ -167,12 +184,14 @@ public class HeatmapEditorWindow : EditorWindow
 
     private void OnEnable()
     {
-        OnQueryDone += _queryHandler.ProcessQueryReceived;
+        OnQueryDone += QueryDone;
+        EditorApplication.update += _heatmapDrawer.EditorUpdate;
     }
 
     private void OnDisable()
     {
-        OnQueryDone -= _queryHandler.ProcessQueryReceived;
+        OnQueryDone -= QueryDone;
+        EditorApplication.update -= _heatmapDrawer.EditorUpdate;
     }
 
     void DisplayData()

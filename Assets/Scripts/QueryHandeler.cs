@@ -50,13 +50,19 @@ public class QueryHandeler
       _queryList.Add(q);
       return id;
   }
+
+  public void ClearQuery(QueryDataStructure q)
+  {
+        if (_queryList.Contains(q))
+            _queryList.Remove(q);
+  }
   
   public void ClearQueryList()
   {
       _queryList.Clear();
   }
   
-  public void ProcessQueryReceived(string result, uint id)
+  public QueryDataStructure ProcessQueryReceived(string result, uint id)
   {
        QueryDataStructure q = _queryList.Find(s => s.id == id);
        if (q == null)
@@ -89,7 +95,8 @@ public class QueryHandeler
        {
           Debug.Log($"Position X: {q.Position[i].x}, Position Y: {q.Position[i].y}, Position Z: {q.Position[i].z}, Value: {q.NormalizedValue[i]}");
        }
-       _queryList.Add(q);
+
+       return q;
   }
   public string GetQueryType(string queryType)
   {
