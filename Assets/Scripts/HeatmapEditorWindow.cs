@@ -110,9 +110,12 @@ public class HeatmapEditorWindow : EditorWindow
         if (GUILayout.Button("Clear selected query"))
         {
             Debug.Log($"HeatmapEditorWindow: Button pressed: Clear selected query");
-            _heatmapDrawer.RemoveHeatmapCube(listQueries.ElementAt(_selectedQueryIndex));
-            _queryHandler.ClearQuery(listQueries.ElementAt(_selectedQueryIndex));
+            var data = listQueries.ElementAt(_selectedQueryIndex);
+            _heatmapDrawer.RemoveHeatmapCube(data);
+            _queryHandler.ClearQuery(data);
         }
+
+        DisplayHeatMapDrawSlider(listQueries);
         EditorGUI.EndDisabledGroup();
         
         GUILayout.Label("Display options:", EditorStyles.boldLabel);
@@ -127,6 +130,21 @@ public class HeatmapEditorWindow : EditorWindow
             _heatmapDrawer.RemoveAllHeatMapCubes();
             _queryHandler.ClearQueryList();
         }
+    }
+
+    private void DisplayHeatMapDrawSlider(List<QueryDataStructure> listQueries)
+    {
+        if (listQueries.Count <= 0) return;
+        var selectedQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
+        HeatmapCube hc = _heatmapDrawer.GetHeatMapCube(selectedQueryDataStructure);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Intensity");
+        hc.Intensity  = EditorGUILayout.Slider(hc.Intensity, 1.0f, 10.0f);
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Y Offset");
+        hc.YOffSet  = EditorGUILayout.Slider(hc.YOffSet, 0.0f, 3.0f);
+        EditorGUILayout.EndHorizontal();
     }
 
     void DisplayHeatMapTypes(HeatmapType type)
@@ -213,21 +231,21 @@ public class HeatmapEditorWindow : EditorWindow
         if (_heatmapDrawer == null)
             _heatmapDrawer = new();
         OnQueryDone += QueryDone;
-        EditorApplication.update += _heatmapDrawer.EditorUpdate;
+        // EditorApplication.update += _heatmapDrawer.EditorUpdate;
     }
 
     private void OnDisable()
     {
         OnQueryDone -= QueryDone;
-        EditorApplication.update -= _heatmapDrawer.EditorUpdate;
+        // EditorApplication.update -= _heatmapDrawer.EditorUpdate;
         EditorCoroutineUtility.StopCoroutine(_currentHttpRequestCoroutine);
     }
     
     private void OnDestroy()
     {
         OnQueryDone -= QueryDone;
-        if (_heatmapDrawer)
-            EditorApplication.update -= _heatmapDrawer.EditorUpdate;
+        // if (_heatmapDrawer)
+        //     EditorApplication.update -= _heatmapDrawer.EditorUpdate;
         EditorCoroutineUtility.StopCoroutine(_currentHttpRequestCoroutine);
     }
 }

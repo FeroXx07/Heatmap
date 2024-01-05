@@ -12,14 +12,33 @@ public class HeatmapCube : Object
     {
         rawData = data;
         this.gradient = gradient;
-        this.intensity = intensity;
+        this._intensity = intensity;
         
         Init(data, prefab);
     }
     
     private List<GameObject> Cube = new();
     public QueryDataStructure rawData;
-    private float intensity = 1.0f;
+    private float _intensity = 1.0f;
+    private float _yOffSet = 0.0f;
+    public float Intensity
+    {
+        get => _intensity;
+        set
+        {
+            _intensity = value;
+            SetColor();
+        }
+    }
+    public float YOffSet
+    {
+        get => _yOffSet;
+        set
+        {
+            _yOffSet = value;
+            SetOffset();
+        }
+    }
     private Gradient gradient;
 
     private void Init(QueryDataStructure q, GameObject prefab)
@@ -53,16 +72,21 @@ public class HeatmapCube : Object
              MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
              Renderer cubeRenderer = Cube[i].GetComponent<Renderer>();
              cubeRenderer.GetPropertyBlock(propertyBlock);
-             float calculateValue = Mathf.Clamp01(rawData.NormalizedValue[i] * intensity);
+             float calculateValue = Mathf.Clamp01(rawData.NormalizedValue[i] * Intensity);
              Color color = gradient.Evaluate(calculateValue);
              propertyBlock.SetColor("_Color", color);
              cubeRenderer.SetPropertyBlock(propertyBlock);
          }
      }
-    public void EditorUpdate()
+
+    public void SetOffset()
     {
-        // Update Color (Intensity)
-        // Update Size
+        for (int i = 0; i < Cube.Count; i++)
+        {
+            var newPos =  Cube[i].transform.position;
+            newPos.y = _yOffSet;
+            Cube[i].transform.position = newPos;
+        }
     }
 }
 
@@ -74,6 +98,11 @@ public class HeatmapDrawer : Object
         Debug.Log($"HeatmapDrawer: Creating heatmap cube {data.name}_{data.id}");
         HeatmapCube hc = new HeatmapCube(data, gradient, prefab, intensity);
         _heatmapCubes.Add(hc);
+    }
+
+    public HeatmapCube GetHeatMapCube(QueryDataStructure data)
+    {
+        return _heatmapCubes.Find(cube => cube.rawData.id == data.id);
     }
 
     public void RemoveHeatmapCube(QueryDataStructure data)
@@ -96,13 +125,13 @@ public class HeatmapDrawer : Object
         
         _heatmapCubes.Clear();
     }
-    public void EditorUpdate()
-    {
-        if (_heatmapCubes.Count == 0) return;
-        
-        foreach (HeatmapCube heatmap in _heatmapCubes)
-        {
-            heatmap.EditorUpdate();
-        }
-    }
+    // public void EditorUpdate()
+    // {
+    //     if (_heatmapCubes.Count == 0) return;
+    //     
+    //     foreach (HeatmapCube heatmap in _heatmapCubes)
+    //     {
+    //         heatmap.EditorUpdate();
+    //     }
+    // }
 }
