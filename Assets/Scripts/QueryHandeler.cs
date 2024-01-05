@@ -90,11 +90,11 @@ public class QueryHandeler
        }
       
        // Display retrieved data (for demonstration)
-       Debug.Log("Positions:");
-       for (int i = 0; i < q.Position.Count; i++)
-       {
-          Debug.Log($"Position X: {q.Position[i].x}, Position Y: {q.Position[i].y}, Position Z: {q.Position[i].z}, Value: {q.NormalizedValue[i]}");
-       }
+       // Debug.Log("Positions:");
+       // for (int i = 0; i < q.Position.Count; i++)
+       // {
+       //    Debug.Log($"Position X: {q.Position[i].x}, Position Y: {q.Position[i].y}, Position Z: {q.Position[i].z}, Value: {q.NormalizedValue[i]}");
+       // }
 
        return q;
   }

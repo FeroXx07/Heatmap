@@ -1,10 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
+using Unity.EditorCoroutines.Editor;
 
 public class HeatmapEditorWindow : EditorWindow
 {
@@ -32,24 +34,31 @@ public class HeatmapEditorWindow : EditorWindow
         CUBES
     }
 
-    private HeatmapType _heatmapType;
-    private Color _minColor;
-    private Color _maxColor;
-    private Material _material;
-    private Gradient _gradient = new Gradient();
+    [SerializeField] private HeatmapType _heatmapType;
+    [SerializeField] private Color _minColor;
+    [SerializeField] private Color _maxColor;
+    [SerializeField] private Material _material;
+    [SerializeField] private Gradient _gradient = new Gradient();
     
-    private GameObject _prefab;
+    [SerializeField] private GameObject _prefab;
     private float _objectSize;
     #endregion    
     
-    private QueryHandeler _queryHandler = new QueryHandeler();
-    private HeatmapDrawer _heatmapDrawer = new HeatmapDrawer();
+    private QueryHandeler _queryHandler;
+    private HeatmapDrawer _heatmapDrawer;
     
     private QueryDataStructure _currentQueryDataStructure;
     private int _selectedQueryIndex = 0;
+    private EditorCoroutine _currentHttpRequestCoroutine = null;
     
     private int _currentProcessedQueryType = 0;
     private uint _currentProccesedQueryId = UInt32.MaxValue;
+
+    private void Awake()
+    {
+        _queryHandler = new();
+        _heatmapDrawer = new();
+    }
 
     [MenuItem("Tools/Heatmap Editor")]
     public static void ShowWindow()
@@ -90,7 +99,8 @@ public class HeatmapEditorWindow : EditorWindow
         // Send Query
         if (GUILayout.Button("Send query") && _webRequest == null)
         {
-            RequestQuery(_query, _queryTypes[_selectedQueryTypeIndex]);
+            Debug.Log($"HeatmapEditorWindow: Button pressed: Send query");
+            _currentHttpRequestCoroutine = EditorCoroutineUtility.StartCoroutineOwnerless(RequestQuery(_query, _queryTypes[_selectedQueryTypeIndex]));
             _currentProcessedQueryType = _selectedQueryTypeIndex;
         }
         EditorGUI.EndDisabledGroup();
@@ -99,8 +109,9 @@ public class HeatmapEditorWindow : EditorWindow
         // Send Query
         if (GUILayout.Button("Clear selected query"))
         {
-            _queryHandler.ClearQuery(listQueries.ElementAt(_selectedQueryIndex));
+            Debug.Log($"HeatmapEditorWindow: Button pressed: Clear selected query");
             _heatmapDrawer.RemoveHeatmapCube(listQueries.ElementAt(_selectedQueryIndex));
+            _queryHandler.ClearQuery(listQueries.ElementAt(_selectedQueryIndex));
         }
         EditorGUI.EndDisabledGroup();
         
@@ -112,6 +123,8 @@ public class HeatmapEditorWindow : EditorWindow
         
         if (GUILayout.Button("Clear queries"))
         {
+            Debug.Log($"HeatmapEditorWindow: Button pressed: Clear queries");
+            _heatmapDrawer.RemoveAllHeatMapCubes();
             _queryHandler.ClearQueryList();
         }
     }
@@ -133,57 +146,72 @@ public class HeatmapEditorWindow : EditorWindow
         }
     }
 
-    private void RequestQuery(string query, string name)
+    private IEnumerator RequestQuery(string query, string name)
     {
-        try
+        Debug.Log($"HeatmapEditorWindow: Requesting query {name}");
+        
+        OnQueryRequested?.Invoke(query, name);
+        _webRequest = UnityWebRequest.PostWwwForm(_useLocalHost ? _localHostAPI : _globalAPI, query);
+        byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(query);
+        _webRequest.uploadHandler = new UploadHandlerRaw(jsonBytes);
+        _webRequest.downloadHandler = new DownloadHandlerBuffer();
+        _webRequest.SetRequestHeader("Content-Type", "application/json");
+        
+        yield return _webRequest.SendWebRequest();
+        
+        if (_webRequest.result == UnityWebRequest.Result.Success)
         {
-            _webRequest = UnityWebRequest.PostWwwForm(_useLocalHost ? _localHostAPI : _globalAPI, query);
-            byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(query);
-            _webRequest.uploadHandler = new UploadHandlerRaw(jsonBytes);
-            _webRequest.downloadHandler = new DownloadHandlerBuffer();
-            _webRequest.SetRequestHeader("Content-Type", "application/json");
-            _webRequest.SendWebRequest();
-            OnQueryRequested?.Invoke(query, name);
             _currentProccesedQueryId = _queryHandler.SaveNewQuery(name);
-            EditorApplication.update += EditorUpdate;
+            Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
+            OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _currentProccesedQueryId);
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine(e);
-            throw;
+            Debug.LogError($"HTTP Request failed with error: {_webRequest.error}");
+            OnQueryFailed?.Invoke(_webRequest.error, _currentProccesedQueryId);
         }
+        
+        _webRequest.Dispose();
+        _webRequest = null;
+        //EditorApplication.update += EditorUpdate;
+       
     }
 
     private void QueryDone(string result, uint id)
     {
+        Debug.Log($"HeatmapEditorWindow: QueryDone Id: {id}");
         QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id);
         _heatmapDrawer.CreateHeatmapCube(q, _gradient, _prefab, 1.0f);
     }
 
     private void EditorUpdate()
     {
-        if (!_webRequest.isDone)
-            return;
-        
-        if (_webRequest.result == UnityWebRequest.Result.ConnectionError)
-        {
-            Debug.LogError($"HTTP Request failed with error: {_webRequest.error}");
-            OnQueryFailed?.Invoke(_webRequest.error, _currentProccesedQueryId);
-        }
-        else
-        {
-            Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
-            OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _currentProccesedQueryId);
-        }
-
-        _webRequest.Dispose();
-        _webRequest = null;
-
-        EditorApplication.update -= EditorUpdate;
+        // if (_webRequest == null || !_webRequest.isDone)
+        //     return;
+        // Debug.Log($"HeatmapEditorWindow: Editor Update");
+        // if (_webRequest.result == UnityWebRequest.Result.ConnectionError)
+        // {
+        //     Debug.LogError($"HTTP Request failed with error: {_webRequest.error}");
+        //     OnQueryFailed?.Invoke(_webRequest.error, _currentProccesedQueryId);
+        // }
+        // else
+        // {
+        //     Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
+        //     OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _currentProccesedQueryId);
+        // }
+        //
+        // _webRequest.Dispose();
+        // _webRequest = null;
+        //
+        // EditorApplication.update -= EditorUpdate;
     }
 
     private void OnEnable()
     {
+        if (_queryHandler == null)
+            _queryHandler = new();
+        if (_heatmapDrawer == null)
+            _heatmapDrawer = new();
         OnQueryDone += QueryDone;
         EditorApplication.update += _heatmapDrawer.EditorUpdate;
     }
@@ -192,10 +220,14 @@ public class HeatmapEditorWindow : EditorWindow
     {
         OnQueryDone -= QueryDone;
         EditorApplication.update -= _heatmapDrawer.EditorUpdate;
+        EditorCoroutineUtility.StopCoroutine(_currentHttpRequestCoroutine);
     }
-
-    void DisplayData()
+    
+    private void OnDestroy()
     {
-        
+        OnQueryDone -= QueryDone;
+        if (_heatmapDrawer)
+            EditorApplication.update -= _heatmapDrawer.EditorUpdate;
+        EditorCoroutineUtility.StopCoroutine(_currentHttpRequestCoroutine);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -15,7 +16,7 @@ public class HeatmapCube : Object
         
         Init(data, prefab);
     }
-
+    
     private List<GameObject> Cube = new();
     public QueryDataStructure rawData;
     private float intensity = 1.0f;
@@ -27,7 +28,7 @@ public class HeatmapCube : Object
         InstantiateCubes(q, prefab);
         SetColor();
     }
-
+    
     private void InstantiateCubes(QueryDataStructure q, GameObject prefab, float scale = 1)
     {
         GameObject container = new GameObject($"Container_{q.name}_{q.id}");
@@ -37,8 +38,13 @@ public class HeatmapCube : Object
             //newPos.y = yOffset;
             GameObject cube = Instantiate<GameObject>(prefab, newPos, quaternion.identity, container.transform);
             cube.transform.localScale = new Vector3(scale, scale, scale);
-            //queryDataStructure.Cube.Add(cube);
+            Cube.Add(cube);
         }
+    }
+    public void DestroyCubes()
+    {
+        GameObject container = GameObject.Find($"Container_{rawData.name}_{rawData.id}");
+        DestroyImmediate(container.gameObject);
     }
     void SetColor()
      {
@@ -62,19 +68,38 @@ public class HeatmapCube : Object
 
 public class HeatmapDrawer : Object
 {
-    private List<HeatmapCube> _heatmapCubes = new();
+    private List<HeatmapCube> _heatmapCubes = new List<HeatmapCube>();
     public void CreateHeatmapCube(QueryDataStructure data, Gradient gradient, GameObject prefab, float intensity = 1.0f)
     {
-        _heatmapCubes.Add(new HeatmapCube(data, gradient, prefab, intensity));
+        Debug.Log($"HeatmapDrawer: Creating heatmap cube {data.name}_{data.id}");
+        HeatmapCube hc = new HeatmapCube(data, gradient, prefab, intensity);
+        _heatmapCubes.Add(hc);
     }
 
     public void RemoveHeatmapCube(QueryDataStructure data)
     {
-        _heatmapCubes.Remove(_heatmapCubes.Find(cube => cube.rawData == data));
+        Debug.Log($"HeatmapDrawer: Removing heatmap cube {data.name}_{data.id}");
+        HeatmapCube hc = _heatmapCubes.Find(cube => cube.rawData.id == data.id);
+        hc.DestroyCubes();
+        _heatmapCubes.RemoveAll(element => element.rawData.id == data.id);
     }
-    
+
+    public void RemoveAllHeatMapCubes()
+    {
+        if (_heatmapCubes.Count == 0) return;
+        
+        foreach (HeatmapCube heatmap in _heatmapCubes)
+        {
+            heatmap.DestroyCubes();
+            _heatmapCubes.Remove(heatmap);
+        }
+        
+        _heatmapCubes.Clear();
+    }
     public void EditorUpdate()
     {
+        if (_heatmapCubes.Count == 0) return;
+        
         foreach (HeatmapCube heatmap in _heatmapCubes)
         {
             heatmap.EditorUpdate();
