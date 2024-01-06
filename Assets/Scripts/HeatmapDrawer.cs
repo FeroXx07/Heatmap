@@ -159,8 +159,11 @@ public class HeatmapDrawer : Object
     {
         Debug.Log($"HeatmapDrawer: Removing heatmap cube {data.name}_{data.id}");
         HeatmapCube hc = _heatmapCubes.Find(cube => cube.rawData.id == data.id);
-        hc.DestroyCubes();
-        _heatmapCubes.RemoveAll(element => element.rawData.id == data.id);
+        if (hc != null)
+        {
+            hc.DestroyCubes();
+            _heatmapCubes.RemoveAll(element => element.rawData.id == data.id);
+        }
     }
 
     public void RemoveAllHeatMapCubes()

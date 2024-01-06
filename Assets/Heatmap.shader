@@ -15,7 +15,7 @@ Shader "Unlit/Heatmap"
       _Range3("Range 3",Range(0,1)) = 0.75
       _Range4("Range 4",Range(0,1)) = 1
 
-      _Diameter("Diameter",Range(0,1)) = 1.0
+      _Diameter("Diameter",Range(0,10)) = 1.0
       _Strength("Strength",Range(.1,4)) = 1.0
       _PulseSpeed("Pulse Speed",Range(0,5)) = 0
   }

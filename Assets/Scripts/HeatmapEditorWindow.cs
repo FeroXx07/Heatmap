@@ -91,7 +91,7 @@ public class HeatmapEditorWindow : EditorWindow
             
             foreach (var q in listQueries)
                 availableQueries.Add($"{q.name}_{q.id}");
-            availableQueries.Add("none");
+            
             _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex, availableQueries.ToArray());
             _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
             GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel);
@@ -114,7 +114,7 @@ public class HeatmapEditorWindow : EditorWindow
         {
             Debug.Log($"HeatmapEditorWindow: Button pressed: Clear selected query");
             var data = listQueries.ElementAt(_selectedQueryIndex);
-            listQueries.RemoveAt(_selectedQueryIndex);
+            
             _heatmapDrawer.RemoveHeatmapCube(data);
             _queryHandler.ClearQuery(data);
         }
