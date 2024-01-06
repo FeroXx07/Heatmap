@@ -3,7 +3,7 @@ Shader "Unlit/Heatmap"
    Properties
   {
     _MainTex("Texture", 2D) = "white" {}
-    _Color0("Color 0",Color) = (0,0,0,1)
+    //_Color0("Color 0",Color) = (0,0,0,1)
       _Color1("Color 1",Color) = (0,.9,.2,1)
       _Color2("Color 2",Color) = (.9,1,.3,1)
       _Color3("Color 3",Color) = (.9,.7,.1,1)
@@ -78,12 +78,12 @@ Shader "Unlit/Heatmap"
 
         float3 colors[5]; //colors for point ranges
         float pointranges[5];  //ranges of values used to determine color values
-        float _Hits[3 * 32]; //passed in array of pointranges 3floats/point, x,y,intensity
+        float _Hits[3 * 1000]; //passed in array of pointranges 3floats/point, x,y,intensity
         int _HitCount = 0;
 
         void initalize()
         {
-          colors[0] = _Color0;
+
           colors[1] = _Color1;
           colors[2] = _Color2;
           colors[3] = _Color3;
@@ -93,8 +93,7 @@ Shader "Unlit/Heatmap"
           pointranges[2] = _Range2;
           pointranges[3] = _Range3;
           pointranges[4] = _Range4;
-
-          _HitCount = 2;
+           _HitCount = 2;
                 _Hits[0] =0;
                 _Hits[1] =0;
                 _Hits[2] =4;
@@ -148,7 +147,7 @@ Shader "Unlit/Heatmap"
         fixed4 frag(v2f i) : SV_Target
         {
           fixed4 col = tex2D(_MainTex, i.uv);
-
+          colors[0] = col;
           initalize();
           float2 uv = i.uv;
           uv = uv * 4.0 - float2(2.0,2.0);  //our texture uv range is -2 to 2
@@ -161,8 +160,7 @@ Shader "Unlit/Heatmap"
 
             totalWeight += 0.5 * distsq(uv, work_pt) * pt_intensity * _Strength * (1 + sin(_Time.y * _PulseSpeed));
           }
-          return float4(getHeatForPixel(totalWeight), .5);
-          return col + float4(getHeatForPixel(totalWeight), .5);
+          return float4(getHeatForPixel(totalWeight), 1);
         }
 
 

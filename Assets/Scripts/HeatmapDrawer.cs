@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,9 +91,58 @@ public class HeatmapCube : Object
     }
 }
 
+public class HeatmapShader
+{
+    private Material _mMaterial;
+    private float[] _points;
+    private int _pointCount;
+    private float _intensity;
+    private List<Vector3> _positions;
+    public HeatmapShader(QueryDataStructure structure, Material mat, Gradient gradient,float intensity)
+    {
+        _mMaterial = mat;
+        //_mMaterial.SetColor();
+        _points = new float[structure.Position.Count * 3];
+        _intensity = intensity;
+        _positions = structure.Position;
+    }
+
+    public void Generate()
+    {
+        Debug.Log("Generating heatmap shader");
+        foreach (Vector3 p in _positions)
+        {
+            Vector3 rayOrigin = p;
+            rayOrigin.y += 1;
+
+            Ray ray = new Ray(rayOrigin, Vector3.down);
+            RaycastHit hit = new RaycastHit();
+            if (Physics.Raycast(ray, out hit, 10.0f,LayerMask.GetMask("Heatmap"))) {
+                AddHitPoint(hit.textureCoord.x*4-2,hit.textureCoord.y*4-2);
+            }
+        }
+    }
+    
+    void AddHitPoint(float px, float py)
+    {
+        _points[_pointCount * 3] = px;
+        _points[_pointCount * 3 + 1] = py;
+        _points[_pointCount * 3 + 2] = _intensity;
+        _pointCount++;
+
+        _pointCount %= _positions.Count;
+        _mMaterial.SetFloatArray("_Hits",_points);
+        _mMaterial.SetInt("_HitCount",_pointCount);
+        
+        Debug.Log($"hit point added {px} {py}");
+    }
+}
+
 public class HeatmapDrawer : Object
 {
     private List<HeatmapCube> _heatmapCubes = new List<HeatmapCube>();
+    private List<HeatmapShader> _heatmapShaders = new List<HeatmapShader>();
+
     public void CreateHeatmapCube(QueryDataStructure data, Gradient gradient, GameObject prefab, float intensity = 1.0f)
     {
         Debug.Log($"HeatmapDrawer: Creating heatmap cube {data.name}_{data.id}");
@@ -124,6 +174,13 @@ public class HeatmapDrawer : Object
         }
         
         _heatmapCubes.Clear();
+    }
+
+    public void CreateHeatmapShader(QueryDataStructure data,Material mat, Gradient gradient, float intensity)
+    {
+        HeatmapShader heatmapShader = new HeatmapShader(data,mat,gradient,intensity);
+        
+        heatmapShader.Generate();
     }
     // public void EditorUpdate()
     // {

@@ -52,7 +52,7 @@ Material:
     - _Range2: 0.5
     - _Range3: 0.75
     - _Range4: 1
-    - _Strength: 0.69
+    - _Strength: 0.38
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color0: {r: 0, g: 0, b: 0, a: 1}
