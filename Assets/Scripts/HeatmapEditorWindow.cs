@@ -109,15 +109,16 @@ public class HeatmapEditorWindow : EditorWindow
         }
         EditorGUI.EndDisabledGroup();
         
-        
+        EditorGUI.BeginDisabledGroup(!hasData);
         if (GUILayout.Button("Clear selected query"))
         {
             Debug.Log($"HeatmapEditorWindow: Button pressed: Clear selected query");
             var data = listQueries.ElementAt(_selectedQueryIndex);
+            listQueries.RemoveAt(_selectedQueryIndex);
             _heatmapDrawer.RemoveHeatmapCube(data);
             _queryHandler.ClearQuery(data);
         }
-        EditorGUI.BeginDisabledGroup(!hasData);
+
         if (GUILayout.Button("Clear queries"))
         {
             Debug.Log($"HeatmapEditorWindow: Button pressed: Clear queries");
