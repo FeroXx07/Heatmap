@@ -98,6 +98,9 @@ public class HeatmapShader
     private int _pointCount;
     private float _intensity;
     private List<Vector3> _positions;
+    private static readonly int Hits = Shader.PropertyToID("_Hits");
+    private static readonly int HitCount = Shader.PropertyToID("_HitCount");
+
     public HeatmapShader(QueryDataStructure structure, Material mat, Gradient gradient,float intensity)
     {
         _mMaterial = mat;
@@ -118,21 +121,24 @@ public class HeatmapShader
             Ray ray = new Ray(rayOrigin, Vector3.down);
             RaycastHit hit = new RaycastHit();
             if (Physics.Raycast(ray, out hit, 10.0f,LayerMask.GetMask("Heatmap"))) {
-                AddHitPoint(hit.textureCoord.x*4-2,hit.textureCoord.y*4-2);
+                Debug.Log($"Hit:{hit.transform.gameObject}");
+                Material mat = hit.transform.gameObject.GetComponent<MeshRenderer>().material;
+                AddHitPoint(hit.textureCoord.x*4-2,hit.textureCoord.y*4-2,mat);
             }
         }
     }
     
-    void AddHitPoint(float px, float py)
+    void AddHitPoint(float px, float py,Material mat)
     {
         _points[_pointCount * 3] = px;
         _points[_pointCount * 3 + 1] = py;
         _points[_pointCount * 3 + 2] = _intensity;
+        
         _pointCount++;
-
         _pointCount %= _positions.Count;
-        _mMaterial.SetFloatArray("_Hits",_points);
-        _mMaterial.SetInt("_HitCount",_pointCount);
+
+        mat.SetFloatArray(Hits,_points);
+        mat.SetInt(HitCount,_pointCount);
         
         Debug.Log($"hit point added {px} {py}");
     }

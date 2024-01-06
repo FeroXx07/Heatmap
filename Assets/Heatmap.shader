@@ -93,13 +93,6 @@ Shader "Unlit/Heatmap"
           pointranges[2] = _Range2;
           pointranges[3] = _Range3;
           pointranges[4] = _Range4;
-           _HitCount = 2;
-                _Hits[0] =0;
-                _Hits[1] =0;
-                _Hits[2] =4;
-                _Hits[3] =0.5;
-                _Hits[4] =0.5;
-                _Hits[5] =2;
         }
 
         float3 getHeatForPixel(float weight)
