@@ -45,14 +45,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Diameter: 1
+    - _Diameter: 11.2
     - _PulseSpeed: 0
     - _Range0: 0
     - _Range1: 0.25
     - _Range2: 0.5
     - _Range3: 0.75
     - _Range4: 1
-    - _Strength: 0.38
+    - _Strength: 0.72
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color0: {r: 0, g: 0, b: 0, a: 1}
