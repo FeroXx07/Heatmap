@@ -28,10 +28,11 @@ public class HeatmapEditorWindow : EditorWindow
 
     #region  draw properties
 
-    enum HeatmapType
+    public enum HeatmapType
     {
         SHADER,
-        CUBES
+        CUBES,
+        PATH
     }
 
     [SerializeField] private HeatmapType _heatmapType;
@@ -104,7 +105,7 @@ public class HeatmapEditorWindow : EditorWindow
         if (GUILayout.Button("Send query") && _webRequest == null)
         {
             Debug.Log($"HeatmapEditorWindow: Button pressed: Send query");
-            _currentHttpRequestCoroutine = EditorCoroutineUtility.StartCoroutineOwnerless(RequestQuery(_query, _queryTypes[_selectedQueryTypeIndex]));
+            _currentHttpRequestCoroutine = EditorCoroutineUtility.StartCoroutineOwnerless(RequestQuery(_query, _queryTypes[_selectedQueryTypeIndex], _heatmapType));
             _currentProcessedQueryType = _selectedQueryTypeIndex;
         }
         EditorGUI.EndDisabledGroup();
@@ -115,7 +116,8 @@ public class HeatmapEditorWindow : EditorWindow
             Debug.Log($"HeatmapEditorWindow: Button pressed: Clear selected query");
             var data = listQueries.ElementAt(_selectedQueryIndex);
             
-            _heatmapDrawer.RemoveHeatmapCube(data);
+            if (data.type == HeatmapType.CUBES)
+                _heatmapDrawer.RemoveHeatmapCube(data);
             _queryHandler.ClearQuery(data);
         }
 
@@ -126,9 +128,12 @@ public class HeatmapEditorWindow : EditorWindow
             _queryHandler.ClearQueryList();
         }
         EditorGUI.EndDisabledGroup();
-        
-        if (hasData)
-            DisplayHeatMapDrawSlider(listQueries);
+
+        if (_queryHandler.GetQueryList().Count > 0)
+        {
+            var data = listQueries.ElementAt(_selectedQueryIndex);
+            if (data.type == HeatmapType.CUBES) DisplayHeatMapDrawSlider(listQueries);
+        }
         
         GUILayout.Label("Display options:", EditorStyles.boldLabel);
         
@@ -169,7 +174,7 @@ public class HeatmapEditorWindow : EditorWindow
         }
     }
 
-    private IEnumerator RequestQuery(string query, string name)
+    private IEnumerator RequestQuery(string query, string name, HeatmapType type)
     {
         Debug.Log($"HeatmapEditorWindow: Requesting query {name}");
         
@@ -184,7 +189,7 @@ public class HeatmapEditorWindow : EditorWindow
         
         if (_webRequest.result == UnityWebRequest.Result.Success)
         {
-            _currentProccesedQueryId = _queryHandler.SaveNewQuery(name);
+            _currentProccesedQueryId = _queryHandler.SaveNewQuery(name, type);
             Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
             OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _currentProccesedQueryId);
         }

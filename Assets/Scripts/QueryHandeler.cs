@@ -6,10 +6,11 @@ using UnityEngine;
 
 public class QueryDataStructure
 {
-    public QueryDataStructure(string name, uint id)
+    public QueryDataStructure(string name, uint id, HeatmapEditorWindow.HeatmapType type)
     {
         this.name = name;
         this.id = id;
+        this.type = type;
     }
     public void InsertData(float x, float y, float z, float v)
     {
@@ -19,6 +20,7 @@ public class QueryDataStructure
     
     public uint id = UInt32.MaxValue;
     public string name;
+    public HeatmapEditorWindow.HeatmapType type;
     public List<Vector3> Position = new List<Vector3>();
     public List<float> NormalizedValue = new List<float>();
 }
@@ -43,10 +45,10 @@ public class QueryHandeler
       return _queryList;
   }
 
-  public uint SaveNewQuery(string queryName)
+  public uint SaveNewQuery(string queryName, HeatmapEditorWindow.HeatmapType type)
   {
       uint id = GetNewId();
-      QueryDataStructure q = new QueryDataStructure(queryName, id);
+      QueryDataStructure q = new QueryDataStructure(queryName, id, type);
       _queryList.Add(q);
       return id;
   }
