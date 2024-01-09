@@ -126,9 +126,9 @@ public class HeatmapEditorWindow : EditorWindow
             _queryHandler.ClearQueryList();
         }
         EditorGUI.EndDisabledGroup();
-        //DisplayHeatMapDrawSlider(listQueries);
         
-       
+        if (hasData)
+            DisplayHeatMapDrawSlider(listQueries);
         
         GUILayout.Label("Display options:", EditorStyles.boldLabel);
         
