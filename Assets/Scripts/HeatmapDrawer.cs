@@ -68,12 +68,13 @@ public class HeatmapCube : Object
     }
     void SetColor()
      {
+         NormalizedDataStructure nData = rawData as NormalizedDataStructure;
          for (int i = 0; i < Cube.Count; i++)
          {
              MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
              Renderer cubeRenderer = Cube[i].GetComponent<Renderer>();
              cubeRenderer.GetPropertyBlock(propertyBlock);
-             float calculateValue = Mathf.Clamp01(rawData.NormalizedValue[i] * Intensity);
+             float calculateValue = Mathf.Clamp01(nData.NormalizedValue[i] * Intensity);
              Color color = gradient.Evaluate(calculateValue);
              propertyBlock.SetColor("_Color", color);
              cubeRenderer.SetPropertyBlock(propertyBlock);
@@ -144,10 +145,52 @@ public class HeatmapShader
     }
 }
 
+public class HeatmapPath : Object
+{
+    public QueryDataStructure rawData;
+    public Color color = Color.green;
+    public HeatmapPath(QueryDataStructure data, Color color, GameObject prefab)
+    {
+        rawData = data;
+        this.color = color;
+        
+        Init(data, prefab);
+    }
+    private void Init(QueryDataStructure q, GameObject prefab)
+    {
+        rawData = q;
+        InstantiatePath(q, prefab);
+    }
+    
+    private void InstantiatePath(QueryDataStructure q, GameObject prefab, float scale = 1)
+    {
+        GameObject container = Instantiate<GameObject>(prefab, Vector3.zero, quaternion.identity);
+        container.name = $"Container_{q.name}_{q.id}";
+        container.transform.position = Vector3.up;
+        LineRenderer lineRenderer = container.GetComponent<LineRenderer>();
+        lineRenderer.positionCount = q.Position.Count;
+        lineRenderer.useWorldSpace = false;
+        for (int i = 0; i < q.Position.Count; i++)
+        {
+            Vector3 newPos = q.Position[i];
+            lineRenderer.SetPosition(i, newPos);
+            // GameObject arrow = Instantiate<GameObject>(prefab, newPos, quaternion.identity, container.transform);
+            // arrow.transform.localScale = new Vector3(scale, scale, scale);
+        }
+        lineRenderer.Simplify(1);
+    }
+    public void Destroy()
+    {
+        GameObject container = GameObject.Find($"Container_{rawData.name}_{rawData.id}");
+        DestroyImmediate(container.gameObject);
+    }
+}
+
 public class HeatmapDrawer : Object
 {
     private List<HeatmapCube> _heatmapCubes = new List<HeatmapCube>();
     private List<HeatmapShader> _heatmapShaders = new List<HeatmapShader>();
+    private List<HeatmapPath> _heatmapPaths = new List<HeatmapPath>();
 
     public void CreateHeatmapCube(QueryDataStructure data, Gradient gradient, GameObject prefab, float intensity = 1.0f)
     {
@@ -172,6 +215,33 @@ public class HeatmapDrawer : Object
         // }
     }
 
+    public void CreatHeatmapPath(QueryDataStructure data, Color color, GameObject prefab)
+    {
+        Debug.Log($"HeatmapDrawer: Creating heatmap path {data.name}_{data.id}");
+        HeatmapPath hp = new HeatmapPath(data, color, prefab);
+        _heatmapPaths.Add(hp);
+    }
+    
+    public void RemovePath(QueryDataStructure data)
+    {
+        Debug.Log($"HeatmapDrawer: Removing path cube {data.name}_{data.id}");
+        HeatmapPath hp = _heatmapPaths.Find(path => path.rawData.id == data.id);
+        hp.Destroy();
+        _heatmapPaths.RemoveAll(element => element.rawData.id == data.id);
+    }
+    
+    public void RemoveAllHeatMapPaths()
+    {
+        if (_heatmapPaths.Count == 0) return;
+        
+        foreach (HeatmapPath heatmap in _heatmapPaths)
+        {
+            heatmap.Destroy();
+            _heatmapPaths.Remove(heatmap);
+        }
+        
+        _heatmapPaths.Clear();
+    }
     public void RemoveAllHeatMapCubes()
     {
         if (_heatmapCubes.Count == 0) return;
@@ -191,13 +261,4 @@ public class HeatmapDrawer : Object
         
         heatmapShader.Generate();
     }
-    // public void EditorUpdate()
-    // {
-    //     if (_heatmapCubes.Count == 0) return;
-    //     
-    //     foreach (HeatmapCube heatmap in _heatmapCubes)
-    //     {
-    //         heatmap.EditorUpdate();
-    //     }
-    // }
 }

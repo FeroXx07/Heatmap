@@ -6,23 +6,44 @@ using UnityEngine;
 
 public class QueryDataStructure
 {
-    public QueryDataStructure(string name, uint id, HeatmapEditorWindow.HeatmapType type)
+    public QueryDataStructure(string name, uint id, HeatmapEditorWindow.QueryType type)
     {
         this.name = name;
         this.id = id;
         this.type = type;
     }
-    public void InsertData(float x, float y, float z, float v)
+    public virtual void InsertData(float x, float y, float z)
     {
         Position.Add(new Vector3(x, y, z));
-        NormalizedValue.Add(v);
     }
     
     public uint id = UInt32.MaxValue;
     public string name;
-    public HeatmapEditorWindow.HeatmapType type;
+    public HeatmapEditorWindow.QueryType type;
     public List<Vector3> Position = new List<Vector3>();
+}
+
+public class PathDataStructure : QueryDataStructure
+{
+    public UInt64 playerId;
+    public UInt64 sessionId;
+    public PathDataStructure(string name, uint id, HeatmapEditorWindow.QueryType type) : base(name, id, type)
+    {
+        this.playerId = playerId;
+        this.sessionId = sessionId;
+    }
+}
+public class NormalizedDataStructure : QueryDataStructure
+{
     public List<float> NormalizedValue = new List<float>();
+    public NormalizedDataStructure(string name, uint id, HeatmapEditorWindow.QueryType type) : base(name, id, type)
+    {
+    }
+    public void InsertData(float x, float y, float z, float v)
+    {
+        base.InsertData(x, y, z);
+        NormalizedValue.Add(v);
+    }
 }
 
 public class QueryHandeler
@@ -45,14 +66,22 @@ public class QueryHandeler
       return _queryList;
   }
 
-  public uint SaveNewQuery(string queryName, HeatmapEditorWindow.HeatmapType type)
+  public uint SaveNewQuery(string queryName, HeatmapEditorWindow.QueryType type)
   {
       uint id = GetNewId();
-      QueryDataStructure q = new QueryDataStructure(queryName, id, type);
+      QueryDataStructure q = null;
+      if (type == HeatmapEditorWindow.QueryType.CUBES || type == HeatmapEditorWindow.QueryType.SHADER)
+      {
+           q = new NormalizedDataStructure(queryName, id, type);
+      }
+      else if (type == HeatmapEditorWindow.QueryType.PATH)
+      {
+          q = new PathDataStructure(queryName, id, type);
+      }
       _queryList.Add(q);
       return id;
   }
-
+  
   public void ClearQuery(QueryDataStructure q)
   {
         if (_queryList.Contains(q))
@@ -75,20 +104,38 @@ public class QueryHandeler
        // Parse the received lines into arrays
        foreach (string row in rows)
        {
-           string[] rowData = row.Split('\n');
+           if (q.type == HeatmapEditorWindow.QueryType.CUBES || q.type == HeatmapEditorWindow.QueryType.SHADER)
+           {
+               var nData = q as NormalizedDataStructure;
+               string[] rowData = row.Split('\n');
                 
-           float.TryParse(rowData[0].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-             out float posX);
-           float.TryParse(rowData[1].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-             out float posY);
-           float.TryParse(rowData[2].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-             out float posZ);
-           // Parse total damage and normalized damage
-           float totalDamage = float.Parse(rowData[3].Split(':')[1]);
-           float.TryParse(rowData[4].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
-             out float parseResult);
-           float normalizedDamage = parseResult;
-           q.InsertData(posX, posY, posZ, normalizedDamage);
+               float.TryParse(rowData[0].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                   out float posX);
+               float.TryParse(rowData[1].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                   out float posY);
+               float.TryParse(rowData[2].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                   out float posZ);
+               // Parse total damage and normalized damage
+               float totalDamage = float.Parse(rowData[3].Split(':')[1]);
+               float.TryParse(rowData[4].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                   out float parseResult);
+               float normalizedDamage = parseResult;
+               nData.InsertData(posX, posY, posZ, normalizedDamage);
+           }
+           else if (q.type == HeatmapEditorWindow.QueryType.PATH)
+           {
+               var pathData = q as PathDataStructure;
+               string[] rowData = row.Split('\n');
+                
+               float.TryParse(rowData[0].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                   out float posX);
+               float.TryParse(rowData[1].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                   out float posY);
+               float.TryParse(rowData[2].Split(':')[1], NumberStyles.Float, CultureInfo.InvariantCulture,
+                   out float posZ);
+               
+               pathData.InsertData(posX, posY, posZ);
+           }
        }
       
        // Display retrieved data (for demonstration)
