@@ -167,7 +167,13 @@ public class QueryHandeler
             case "Interaction":
             
           break;
-        default:
+            case "Age":
+
+            break;
+            case "Country":
+
+                break;
+            default:
           Debug.LogError($"Unsupported query type: {queryType}");
           return null;
       }
