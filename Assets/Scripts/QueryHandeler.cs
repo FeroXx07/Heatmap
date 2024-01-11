@@ -147,7 +147,7 @@ public class QueryHandeler
 
        return q;
   }
-  public string GetQueryType(string queryType)
+  public string GetFinalQuery(string queryType)
   {
       // Adjust the query based on the selected type
       string query = "";
@@ -167,12 +167,6 @@ public class QueryHandeler
             case "Interaction":
             
           break;
-            case "Age":
-
-            break;
-            case "Country":
-
-                break;
             default:
           Debug.LogError($"Unsupported query type: {queryType}");
           return null;

@@ -16,7 +16,7 @@ public class HeatmapEditorWindow : EditorWindow
 
     private readonly string[] _queryTypes =
     {
-        "DamagePositionNormalized", "PlayerDamagePositionNormalized", "EnemyDamagePositionNormalized", "Interaction", "Age", "Country"
+        "DamagePositionNormalized", "PlayerDamagePositionNormalized", "EnemyDamagePositionNormalized", "Interaction"
     };
 
     private readonly string[] _interactionTypes =
@@ -34,12 +34,7 @@ public class HeatmapEditorWindow : EditorWindow
         "DAMAGE_BOX",
         "FINISH"
     };
-    private readonly string[] _countries =
-    {
-        "Spain", "Portugal", "France", "Bulgaria", "USA" //a�adan al gusto
-    };
-
-
+  
     private int _selectedQueryTypeIndex = 0;
     private readonly string[] _granularityTypes = { "ROUND", "FLOOR" };
     private int _selectedGranularityTypeIndex = 0;
@@ -52,10 +47,23 @@ public class HeatmapEditorWindow : EditorWindow
     public static Action<string, uint> OnQueryDone;
     public static Action<string, uint> OnQueryFailed;
     private int _selectedInteractionTypeIndex = 0;
+    #endregion
+
+    #region  Filters
+    private readonly string[] _countries =
+    {
+        "ALL", "Spain", "Portugal", "France", "Bulgaria", "USA" //insertar al gusto
+    };
+
+    private readonly string[] _sex =
+    {
+        "MALE", "FEMALE"
+    };
+
     private int _selectedCountryTypeIndex = 0;
     private int _selectedMinAge;
     private int _selectedMaxAge;
-
+    private int _selectedSex;
     #endregion
 
     #region draw properties
@@ -146,29 +154,14 @@ public class HeatmapEditorWindow : EditorWindow
 
             // Query type dropdown
             _selectedQueryTypeIndex = EditorGUILayout.Popup("Query Type:", _selectedQueryTypeIndex, _queryTypes);
-            _query = _queryHandler.GetQueryType(_queryTypes[_selectedQueryTypeIndex]);
+            _query = _queryHandler.GetFinalQuery(_queryTypes[_selectedQueryTypeIndex]);
 
             // Interaction type dropdown
             if (_queryTypes[_selectedQueryTypeIndex] == "Interaction")
-            _selectedInteractionTypeIndex = EditorGUILayout.Popup("Interaction Type:", _selectedInteractionTypeIndex, _interactionTypes);
+                _selectedInteractionTypeIndex = EditorGUILayout.Popup("Interaction Type:", _selectedInteractionTypeIndex, _interactionTypes);
 
-            if (_queryTypes[_selectedQueryTypeIndex] == "Age")
-            {
-                float min = _selectedMinAge, max = _selectedMaxAge;
-                EditorGUILayout.MinMaxSlider(ref min, ref max, 1, 99);
-
-                _selectedMinAge = (int)MathF.Round(min);
-                _selectedMaxAge = (int)MathF.Round(max);
-
-                EditorGUILayout.IntField("Min Age",_selectedMinAge);
-                EditorGUILayout.IntField("Max Age",_selectedMaxAge);
-
-            }
-
-            if (_queryTypes[_selectedQueryTypeIndex] == "Country")
-                _selectedCountryTypeIndex = EditorGUILayout.Popup("Country:", _selectedCountryTypeIndex, _countries);
-
-
+            DrawFilterOptions();    
+            
             // disable button if query in progress
             EditorGUI.BeginDisabledGroup(_query != null && _webRequest != null && !_webRequest.isDone);
 
@@ -213,6 +206,19 @@ public class HeatmapEditorWindow : EditorWindow
             var data = listQueries.ElementAt(_selectedQueryIndex);
             if (data.type == QueryType.CUBES) DisplayHeatMapDrawSlider(listQueries);
         }
+    }
+
+    private void DrawFilterOptions()
+    {
+        GUILayout.Label("Filter options:", EditorStyles.boldLabel);
+        float min = _selectedMinAge, max = _selectedMaxAge;
+        EditorGUILayout.MinMaxSlider(ref min, ref max, 1, 99);
+        _selectedMinAge = (int)MathF.Round(min);
+        _selectedMaxAge = (int)MathF.Round(max);
+        EditorGUILayout.IntField("Min Age",_selectedMinAge);
+        EditorGUILayout.IntField("Max Age",_selectedMaxAge);
+        _selectedCountryTypeIndex = EditorGUILayout.Popup("Country:", _selectedCountryTypeIndex, _countries);
+        _selectedSex = EditorGUILayout.Popup("Sex:", _selectedSex, _sex);
     }
 
     private void DrawPathDisplay()
