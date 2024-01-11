@@ -151,6 +151,7 @@ public class QueryHandeler
   {
       string startQuery = "";
       string joinQueryHits = "JOIN Session S ON H.SessionId = S.SessionId JOIN User U ON S.PlayerId = U.Id";
+      string joinQueryInteractions = "JOIN Session S ON I.SessionId = S.SessionId JOIN User U ON S.PlayerId = U.Id";
       switch (queryType)
       {
         case "DamagePositionNormalized":
@@ -173,9 +174,9 @@ public class QueryHandeler
         case "EnemyKills":
             startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Mortal = 1 and Hitter != \"Staff\"";
             break;
-            case "Interaction":
-                startQuery = $"{GetGranularityQueryString(granularityType)} 1, 1 FROM brandonam.Interaction WHERE InteractionType = \"{interactionType}\" ";
-                break;
+        case "Interaction":
+            startQuery = $"{GetGranularityQueryString(granularityType)} 10, 1 FROM Interaction I {joinQueryInteractions} WHERE InteractionType = \"{interactionType}\" ";
+            break;
             default:
           Debug.LogError($"Unsupported query type: {queryType}");
           return null;
