@@ -92,16 +92,10 @@ public class HeatmapEditorWindow : EditorWindow
             
             foreach (var q in listQueries)
                 availableQueries.Add($"{q.name}_{q.id}");
-
-            int currentIndex = _selectedQueryIndex;
+            
             _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex, availableQueries.ToArray());
-            if (currentIndex != _selectedQueryIndex)
-            {
-                _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
-                GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel); 
-                DrawQuery(_currentQueryDataStructure);
-            }
-
+            _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
+            GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel);
         }
         
         // disable button if query in progress
@@ -215,20 +209,21 @@ public class HeatmapEditorWindow : EditorWindow
     {
         Debug.Log($"HeatmapEditorWindow: QueryDone Id: {id}");
         QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id);
-        DrawQuery(q);
-    }
-
-    private void DrawQuery(QueryDataStructure q)
-    {
         switch (_heatmapType)
         {
             case HeatmapType.CUBES:
                 _heatmapDrawer.CreateHeatmapCube(q, _gradient, _prefab, 1.0f);
                 break;
             case HeatmapType.SHADER:
-                _heatmapDrawer.CreateHeatmapShader(q,1.0f);
+                if(_material != null)
+                    _heatmapDrawer.CreateHeatmapShader(q,_material,_gradient,1.0f);
+                else
+                {
+                    Debug.Log("material not set in the editor");
+                }
                 break;
         }
+        
     }
 
     private void EditorUpdate()
