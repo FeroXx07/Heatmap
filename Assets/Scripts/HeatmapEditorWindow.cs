@@ -69,10 +69,8 @@ public class HeatmapEditorWindow : EditorWindow
 
 
     [FormerlySerializedAs("_heatmapType")] [SerializeField] private QueryType queryType;
-    [SerializeField] private Color _minColor;
-    [SerializeField] private Color _maxColor;
-    [SerializeField] private Material _material;
     [SerializeField] private Gradient _gradient = new Gradient();
+    [SerializeField] private float _intensity = 1.0f;
     [SerializeField] private GameObject _prefabCube;
     [SerializeField] private GameObject _prefabPath;
     private float _objectSize;
@@ -110,8 +108,10 @@ public class HeatmapEditorWindow : EditorWindow
         GUILayout.Label("Connection: ", EditorStyles.boldLabel);
         _useLocalHost = EditorGUILayout.Toggle("Local Host:", _useLocalHost);
         queryType = (QueryType)EditorGUILayout.EnumPopup("Heatmap type", queryType);
+        
         GUILayout.Label("Display options:", EditorStyles.boldLabel);
         DisplayHeatMapTypes(queryType);
+        
         // Queries available popup
         List<QueryDataStructure> listQueries = _queryHandler.GetQueryList();
         bool hasData = listQueries.Count > 0 ? true : false;
@@ -121,10 +121,18 @@ public class HeatmapEditorWindow : EditorWindow
         {
             List<string> availableQueries = new List<string>();
             foreach (var q in listQueries) availableQueries.Add($"{q.name}_{q.id}");
+            
+            int currentIndex = _selectedQueryIndex;
+            
             _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex,
                 availableQueries.ToArray());
-            _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
-            GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel);
+            
+            if (currentIndex != _selectedQueryIndex)
+            {
+                _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
+                GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel); 
+                DrawQuery(_currentQueryDataStructure);
+            }
         }
         
         if (queryType == QueryType.CUBES || queryType == QueryType.SHADER)
@@ -306,10 +314,8 @@ public class HeatmapEditorWindow : EditorWindow
         switch (type)
         {
             case QueryType.SHADER:
-                _minColor = EditorGUILayout.ColorField("Min Color", _minColor);
-                _maxColor = EditorGUILayout.ColorField("Max Color", _maxColor);
-                _material =
-                    EditorGUILayout.ObjectField("Shader Material", _material, typeof(Material), false) as Material;
+                _gradient = EditorGUILayout.GradientField("Gradient", _gradient);
+                _intensity = EditorGUILayout.FloatField("Size", _intensity);
                 break;
             case QueryType.CUBES:
                 _gradient = EditorGUILayout.GradientField("Gradient", _gradient);
@@ -352,71 +358,68 @@ public class HeatmapEditorWindow : EditorWindow
     private void QueryDone(string result, uint id)
     {
         Debug.Log($"HeatmapEditorWindow: QueryDone Id: {id}");
-        switch (queryType)
+        if (playerQuerying)
+        {
+            playerQuerying = false;
+            _playerIds.Clear();
+            _sessionIds.Clear();
+            // Split the received string into lines
+            string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+            // Parse the received lines into arrays
+            foreach (string row in rows)
+            {
+                string[] rowData = row.Split('\n');
+                UInt64.TryParse(rowData[0].Split(':')[1], out ulong data);
+                _playerIds.Add(data);
+            }
+            return;
+        }
+        if (sessionQuerying)
+        {
+            sessionQuerying = false;
+            _sessionIds.Clear();
+            // Split the received string into lines
+            string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+            // Parse the received lines into arrays
+            foreach (string row in rows)
+            {
+                string[] rowData = row.Split('\n');
+                UInt64.TryParse(rowData[0].Split(':')[1], out ulong data);
+                _sessionIds.Add(data);
+            }
+
+            return;
+        }
+        
+        QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id); 
+        DrawQuery(q);
+    }
+
+    void DrawQuery(QueryDataStructure q)
+    {
+                switch (queryType)
         {
             case QueryType.CUBES:
             {
-                QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id);
                 _heatmapDrawer.CreateHeatmapCube(q, _gradient, _prefabCube, 1.0f);
             }
                 break;
             case QueryType.SHADER:
             {
-                QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id);
-                if (_material != null)
-                    _heatmapDrawer.CreateHeatmapShader(q, _material, _gradient, 1.0f);
-                else
-                {
-                    Debug.Log("material not set in the editor");
-                }
+                _heatmapDrawer.CreateHeatmapShader(q, _gradient, _intensity);
             }
                 break;
             case QueryType.PATH:
             {
-                if (playerQuerying)
-                {
-                    playerQuerying = false;
-                    _playerIds.Clear();
-                    _sessionIds.Clear();
-                    // Split the received string into lines
-                    string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    // Parse the received lines into arrays
-                    foreach (string row in rows)
-                    {
-                        string[] rowData = row.Split('\n');
-                        UInt64.TryParse(rowData[0].Split(':')[1], out ulong data);
-                        _playerIds.Add(data);
-                    }
-                }
-                else if (sessionQuerying)
-                {
-                    sessionQuerying = false;
-                    _sessionIds.Clear();
-                    // Split the received string into lines
-                    string[] rows = result.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    // Parse the received lines into arrays
-                    foreach (string row in rows)
-                    {
-                        string[] rowData = row.Split('\n');
-                        UInt64.TryParse(rowData[0].Split(':')[1], out ulong data);
-                        _sessionIds.Add(data);
-                    }
-                }
-                else
-                {
-                    // Actual path
-                    QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id);
-                    PathDataStructure p = q as PathDataStructure;
-                    p.playerId = _selectedPlayerId;
-                    p.sessionId = _selectedSessionId;
-                    _heatmapDrawer.CreatHeatmapPath(q, Color.green, _prefabPath);
-                }
+               PathDataStructure p = q as PathDataStructure;
+               p.playerId = _selectedPlayerId;
+               p.sessionId = _selectedSessionId;
+               _heatmapDrawer.CreatHeatmapPath(q, Color.green, _prefabPath);
             }
                 break;
         }
         
     }
-
     private void OnEnable()
     {
         if (_queryHandler == null) _queryHandler = new();
