@@ -102,8 +102,10 @@ public class HeatmapShader
     private static readonly int Hits = Shader.PropertyToID("_Hits");
     private static readonly int HitCount = Shader.PropertyToID("_HitCount");
 
-    public HeatmapShader(QueryDataStructure structure,float intensity)
+    public HeatmapShader(QueryDataStructure structure, Material mat, Gradient gradient,float intensity)
     {
+        _mMaterial = mat;
+        //_mMaterial.SetColor();
         _points = new float[structure.Position.Count * 3];
         _intensity = intensity;
         _positions = structure.Position;
@@ -138,6 +140,8 @@ public class HeatmapShader
 
         mat.SetFloatArray(Hits,_points);
         mat.SetInt(HitCount,_pointCount);
+        
+        Debug.Log($"hit point added {px} {py}");
     }
 }
 
@@ -251,20 +255,10 @@ public class HeatmapDrawer : Object
         _heatmapCubes.Clear();
     }
 
-    public void CreateHeatmapShader(QueryDataStructure data, float intensity)
+    public void CreateHeatmapShader(QueryDataStructure data,Material mat, Gradient gradient, float intensity)
     {
-        HeatmapShader heatmapShader = new HeatmapShader(data,intensity);
+        HeatmapShader heatmapShader = new HeatmapShader(data,mat,gradient,intensity);
         
         heatmapShader.Generate();
     }
-
-    // public void EditorUpdate()
-    // {
-    //     if (_heatmapCubes.Count == 0) return;
-    //     
-    //     foreach (HeatmapCube heatmap in _heatmapCubes)
-    //     {
-    //         heatmap.EditorUpdate();
-    //     }
-    // }
 }

@@ -94,19 +94,11 @@ public class HeatmapEditorWindow : EditorWindow
         if (hasData)
         {
             List<string> availableQueries = new List<string>();
-            
-            foreach (var q in listQueries)
-                availableQueries.Add($"{q.name}_{q.id}");
-
-            int currentIndex = _selectedQueryIndex;
-            _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex, availableQueries.ToArray());
-            if (currentIndex != _selectedQueryIndex)
-            {
-                _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
-                GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel); 
-                DrawQuery(_currentQueryDataStructure);
-            }
-
+            foreach (var q in listQueries) availableQueries.Add($"{q.name}_{q.id}");
+            _selectedQueryIndex = EditorGUILayout.Popup("Available queries to draw:", _selectedQueryIndex,
+                availableQueries.ToArray());
+            _currentQueryDataStructure = listQueries.ElementAt(_selectedQueryIndex);
+            GUILayout.Label($"Select query to draw: {_currentQueryDataStructure}", EditorStyles.boldLabel);
         }
         
         if (queryType == QueryType.CUBES || queryType == QueryType.SHADER)
@@ -313,13 +305,7 @@ public class HeatmapEditorWindow : EditorWindow
     private void QueryDone(string result, uint id)
     {
         Debug.Log($"HeatmapEditorWindow: QueryDone Id: {id}");
-        QueryDataStructure q = _queryHandler.ProcessQueryReceived(result, id);
-        DrawQuery(q);
-    }
-
-    private void DrawQuery(QueryDataStructure q)
-    {
-        switch (_heatmapType)
+        switch (queryType)
         {
             case QueryType.CUBES:
             {
@@ -381,32 +367,6 @@ public class HeatmapEditorWindow : EditorWindow
             }
                 break;
         }
-            case HeatmapType.SHADER:
-                _heatmapDrawer.CreateHeatmapShader(q,1.0f);
-                break;
-        }
-    }
-
-    private void EditorUpdate()
-    {
-        // if (_webRequest == null || !_webRequest.isDone)
-        //     return;
-        // Debug.Log($"HeatmapEditorWindow: Editor Update");
-        // if (_webRequest.result == UnityWebRequest.Result.ConnectionError)
-        // {
-        //     Debug.LogError($"HTTP Request failed with error: {_webRequest.error}");
-        //     OnQueryFailed?.Invoke(_webRequest.error, _currentProccesedQueryId);
-        // }
-        // else
-        // {
-        //     Debug.Log($"Response for {_query}: {_webRequest.downloadHandler.text}");
-        //     OnQueryDone?.Invoke(_webRequest.downloadHandler.text, _currentProccesedQueryId);
-        // }
-        //
-        // _webRequest.Dispose();
-        // _webRequest = null;
-        //
-        // EditorApplication.update -= EditorUpdate;
     }
 
     private void OnEnable()
