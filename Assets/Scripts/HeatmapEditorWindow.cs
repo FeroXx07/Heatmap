@@ -52,18 +52,18 @@ public class HeatmapEditorWindow : EditorWindow
     #region  Filters
     private readonly string[] _countries =
     {
-        "ALL", "Spain", "Portugal", "France", "Bulgaria", "USA" //insertar al gusto
+        "All", "Spain", "Portugal", "France", "Bulgaria", "USA" //insertar al gusto
     };
 
     private readonly string[] _sex =
     {
-        "MALE", "FEMALE"
+        "All", "Male", "Female"
     };
 
     private int _selectedCountryTypeIndex = 0;
-    private int _selectedMinAge;
-    private int _selectedMaxAge;
-    private int _selectedSex;
+    private int _selectedMinAge = 1;
+    private int _selectedMaxAge = 99;
+    private int _selectedSex = 0;
     #endregion
 
     #region draw properties
@@ -76,7 +76,7 @@ public class HeatmapEditorWindow : EditorWindow
     }
 
 
-    [FormerlySerializedAs("_heatmapType")] [SerializeField] private QueryType queryType;
+    [SerializeField] private QueryType queryType;
     [SerializeField] private Gradient _gradient = new Gradient();
     [SerializeField] private float _intensity = 1.0f;
     [SerializeField] private GameObject _prefabCube;
@@ -84,9 +84,9 @@ public class HeatmapEditorWindow : EditorWindow
     private float _objectSize;
 
     private List<UInt64> _playerIds = new();
-    public static UInt64 _selectedPlayerId = UInt64.MaxValue;
+    private static UInt64 _selectedPlayerId = UInt64.MaxValue;
     private List<UInt64> _sessionIds = new();
-    public static UInt64 _selectedSessionId = UInt64.MaxValue;
+    private static UInt64 _selectedSessionId = UInt64.MaxValue;
     public bool playerQuerying = false;
     public bool sessionQuerying = false;
     #endregion
@@ -180,7 +180,7 @@ public class HeatmapEditorWindow : EditorWindow
 
             // Query type dropdown
             _selectedQueryTypeIndex = EditorGUILayout.Popup("Query Type:", _selectedQueryTypeIndex, _queryTypes);
-            _query = _queryHandler.GetFinalQuery(_queryTypes[_selectedQueryTypeIndex]);
+            _query = _queryHandler.GetFinalQuery(_queryTypes[_selectedQueryTypeIndex], _selectedMinAge, _selectedMaxAge, _countries[_selectedCountryTypeIndex], _sex[_selectedSex]);
 
             // Interaction type dropdown
             if (_queryTypes[_selectedQueryTypeIndex] == "Interaction")

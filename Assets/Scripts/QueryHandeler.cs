@@ -147,22 +147,22 @@ public class QueryHandeler
 
        return q;
   }
-  public string GetFinalQuery(string queryType)
+  public string GetFinalQuery(string queryType, int minAge, int maxAge, string country, string sex)
   {
-      // Adjust the query based on the selected type
-      string query = "";
+      string startQuery = "";
+      string joinQueryHits = "JOIN Session S ON H.SessionId = S.SessionId JOIN User U ON S.PlayerId = U.Id";
       switch (queryType)
       {
         case "DamagePositionNormalized":
-          query = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit GROUP BY GridPositionX, GridPositionY, GridPositionZ;";
+            startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} ";
           break;
 
         case "PlayerDamagePositionNormalized":
-          query = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit WHERE Hitter = \"Staff\" GROUP BY GridPositionX, GridPositionY, GridPositionZ;";
+            startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Hitter = \"Staff\" ";
           break;
 
         case "EnemyDamagePositionNormalized":
-          query = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit WHERE Hitter != \"Staff\" GROUP BY GridPositionX, GridPositionY, GridPositionZ;";
+            startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Hitter != \"Staff\" ";
           break;
             case "Interaction":
             
@@ -172,7 +172,35 @@ public class QueryHandeler
           return null;
       }
 
-      return query;
+      string filtersQuery = "";
+      bool hasWhere = startQuery.Contains("WHERE");
+      
+      // Insert Age string
+      if (hasWhere)
+          filtersQuery += $"AND Age >= {minAge} AND Age <= {maxAge} ";
+      else
+          filtersQuery += $"WHERE Age >= {minAge} AND Age <= {maxAge} ";
+      
+      // Insert Sex string
+      if (sex != "All")
+      {
+          if (hasWhere)
+              filtersQuery += $"AND Sex = {sex} ";
+          else
+              filtersQuery += $"WHERE Sex = {sex} ";
+      }
+      
+      if (country != "All")
+      {
+          if (hasWhere)
+              filtersQuery += $"AND Country = {country} ";
+          else
+              filtersQuery += $"WHERE Country = {country} ";
+      }
+      
+      string endQuery = "GROUP BY GridPositionX, GridPositionY, GridPositionZ;";
+      string finalQuery = startQuery + filtersQuery + endQuery;
+      return finalQuery;
   }
 
   
