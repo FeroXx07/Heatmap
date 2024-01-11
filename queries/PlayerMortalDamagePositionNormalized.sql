@@ -4,5 +4,5 @@ PositionY AS GridPositionY,
 PositionZ AS GridPositionZ, 
  SUM(Mortal) AS TotalDamageInPosition,
  SUM(Mortal) / MAX(SUM(Mortal)) OVER() AS NormalizedDamage
- FROM Hit where Mortal = 1 and Hitter = \"Staff\"
+ FROM Hit WHERE Mortal = 1 and Hitter = "Staff"
  GROUP BY GridPositionX, GridPositionY, GridPositionZ;

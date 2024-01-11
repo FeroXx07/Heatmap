@@ -16,7 +16,9 @@ public class HeatmapEditorWindow : EditorWindow
 
     private readonly string[] _queryTypes =
     {
-        "DamagePositionNormalized", "PlayerDamagePositionNormalized", "EnemyDamagePositionNormalized", "Interaction"
+        "Interaction", 
+        "DamagePositionNormalized", "PlayerDamagePositionNormalized", "EnemyDamagePositionNormalized", 
+        "Kills", "PlayerKills", "EnemyKills" 
     };
 
     private readonly string[] _interactionTypes =

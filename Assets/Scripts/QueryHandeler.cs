@@ -164,8 +164,16 @@ public class QueryHandeler
         case "EnemyDamagePositionNormalized":
             startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Hitter != \"Staff\" ";
           break;
+        case "Kills":
+            startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Mortal = 1 ";
+            break;
+        case "PlayerKills":
+            startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Mortal = 1 and Hitter = \"Staff\"";
+            break;
+        case "EnemyKills":
+            startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Mortal = 1 and Hitter != \"Staff\"";
+            break;
             case "Interaction":
-            
           break;
             default:
           Debug.LogError($"Unsupported query type: {queryType}");
