@@ -103,8 +103,34 @@ public class HeatmapEditorWindow : EditorWindow
     {
         _queryHandler = new();
         _heatmapDrawer = new();
-    }
+        GradientColorKey[] gradientKeys = new GradientColorKey[4];
+        gradientKeys[0].color =Color.green;
+        gradientKeys[0].time = 0.25f;
+        gradientKeys[1].color = Color.yellow;
+        gradientKeys[1].time = 0.5f;
+        gradientKeys[2].color =new Color(230,178,25,1);
+        gradientKeys[2].time = 0.75f;
+        gradientKeys[2].color = Color.red;
+        gradientKeys[2].time = 1.0f;
+        
+        _gradient.colorKeys = gradientKeys;
+        
+        GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
+        alphaKeys[0].alpha = 1.0f;
+        alphaKeys[0].time = 0.0f;
+        alphaKeys[1].alpha = 1.0f;
+        alphaKeys[1].time = 1.0f;
+        
+        _gradient.alphaKeys = alphaKeys;
 
+
+    }
+    Color HexToColor(string hex)
+    {
+        Color color = new Color();
+        ColorUtility.TryParseHtmlString(hex, out color);
+        return color;
+    }
     [MenuItem("Tools/Heatmap Editor")]
     public static void ShowWindow()
     {
