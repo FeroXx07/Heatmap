@@ -16,7 +16,24 @@ public class HeatmapEditorWindow : EditorWindow
 
     private readonly string[] _queryTypes =
     {
-        "DamagePositionNormalized", "PlayerDamagePositionNormalized", "EnemyDamagePositionNormalized"
+        "DamagePositionNormalized", "PlayerDamagePositionNormalized", "EnemyDamagePositionNormalized", 
+        "Interaction"
+    };
+
+    private readonly string[] _interactionTypes =
+    {
+        "NONE",
+        "GET_KEY",
+        "USE_KEY",
+        "BREAK_BOX",
+        "OPEN_DOOR",
+        "SWITCH",
+        "PRESSURE_PLATE",
+        "GET_TREASURE",
+        "HEAL",
+        "SHOW_INFO_TEXT",
+        "DAMAGE_BOX",
+        "FINISH"
     };
 
     private int _selectedQueryTypeIndex = 0;
@@ -30,6 +47,7 @@ public class HeatmapEditorWindow : EditorWindow
     public static Action<string, string> OnQueryRequested;
     public static Action<string, uint> OnQueryDone;
     public static Action<string, uint> OnQueryFailed;
+    private int _selectedInteractionTypeIndex = 0;
 
     #endregion
 
@@ -41,6 +59,7 @@ public class HeatmapEditorWindow : EditorWindow
         CUBES,
         PATH
     }
+
 
     [FormerlySerializedAs("_heatmapType")] [SerializeField] private QueryType queryType;
     [SerializeField] private Color _minColor;
@@ -113,7 +132,12 @@ public class HeatmapEditorWindow : EditorWindow
             // Query type dropdown
             _selectedQueryTypeIndex = EditorGUILayout.Popup("Query Type:", _selectedQueryTypeIndex, _queryTypes);
             _query = _queryHandler.GetQueryType(_queryTypes[_selectedQueryTypeIndex]);
+
+            // Interaction type dropdown
+           if (_selectedQueryTypeIndex == 3)
+            _selectedInteractionTypeIndex = EditorGUILayout.Popup("Interaction Type:", _selectedInteractionTypeIndex, _interactionTypes);
             
+
             // disable button if query in progress
             EditorGUI.BeginDisabledGroup(_query != null && _webRequest != null && !_webRequest.isDone);
 

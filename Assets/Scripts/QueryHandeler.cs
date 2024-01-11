@@ -164,6 +164,9 @@ public class QueryHandeler
         case "EnemyDamagePositionNormalized":
           query = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit WHERE Hitter != \"Staff\" GROUP BY GridPositionX, GridPositionY, GridPositionZ;";
           break;
+            case "Interaction":
+            
+          break;
         default:
           Debug.LogError($"Unsupported query type: {queryType}");
           return null;
