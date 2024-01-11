@@ -147,7 +147,7 @@ public class QueryHandeler
 
        return q;
   }
-  public string GetFinalQuery(string queryType, int minAge, int maxAge, string country, string sex)
+  public string GetFinalQuery(string queryType, int minAge, int maxAge, int minTime, int maxTime, string country, string sex)
   {
       string startQuery = "";
       string joinQueryHits = "JOIN Session S ON H.SessionId = S.SessionId JOIN User U ON S.PlayerId = U.Id";
@@ -177,25 +177,52 @@ public class QueryHandeler
       
       // Insert Age string
       if (hasWhere)
+      {
           filtersQuery += $"AND Age >= {minAge} AND Age <= {maxAge} ";
+      }
       else
+      {
           filtersQuery += $"WHERE Age >= {minAge} AND Age <= {maxAge} ";
+          hasWhere = true;
+      }
       
       // Insert Sex string
       if (sex != "All")
       {
           if (hasWhere)
+          {
               filtersQuery += $"AND Sex = {sex} ";
+          }
           else
+          {
               filtersQuery += $"WHERE Sex = {sex} ";
+              hasWhere = true;
+          }
       }
       
+      // Insert Country string
       if (country != "All")
       {
           if (hasWhere)
+          {
               filtersQuery += $"AND Country = {country} ";
+          }
           else
+          {
               filtersQuery += $"WHERE Country = {country} ";
+              hasWhere = true;
+          }
+      }
+      
+      // Insert Timestamp string
+      if (hasWhere)
+      {
+          filtersQuery += $"AND TimeStamp >= timestamp(S.Start + sec_to_time({minTime})) AND TimeStamp <= timestamp(S.Start + sec_to_time({maxTime})) ";
+      }
+      else
+      {
+          filtersQuery += $"WHERE TimeStamp >= timestamp(S.Start + sec_to_time({minTime})) AND TimeStamp <= timestamp(S.Start + sec_to_time({maxTime})) ";
+          hasWhere = true;
       }
       
       string endQuery = "GROUP BY GridPositionX, GridPositionY, GridPositionZ;";

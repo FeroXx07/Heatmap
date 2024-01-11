@@ -64,6 +64,8 @@ public class HeatmapEditorWindow : EditorWindow
     private int _selectedMinAge = 1;
     private int _selectedMaxAge = 99;
     private int _selectedSex = 0;
+    private int _selectedMinTime = 0;
+    private int _selectedMaxTime = 200;
     #endregion
 
     #region draw properties
@@ -103,17 +105,6 @@ public class HeatmapEditorWindow : EditorWindow
     {
         _queryHandler = new();
         _heatmapDrawer = new();
-        GradientColorKey[] gradientKeys = new GradientColorKey[4];
-        gradientKeys[0].color =Color.green;
-        gradientKeys[0].time = 0.25f;
-        gradientKeys[1].color = Color.yellow;
-        gradientKeys[1].time = 0.5f;
-        gradientKeys[2].color =new Color(230,178,25,1);
-        gradientKeys[2].time = 0.75f;
-        gradientKeys[2].color = Color.red;
-        gradientKeys[2].time = 1.0f;
-        
-        _gradient.colorKeys = gradientKeys;
         
         GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
         alphaKeys[0].alpha = 1.0f;
@@ -122,8 +113,20 @@ public class HeatmapEditorWindow : EditorWindow
         alphaKeys[1].time = 1.0f;
         
         _gradient.alphaKeys = alphaKeys;
-
-
+        
+        GradientColorKey[] gradientKeys = new GradientColorKey[5];
+        gradientKeys[0].color =Color.white;
+        gradientKeys[0].time = 0.00f;
+        gradientKeys[1].color =Color.green;
+        gradientKeys[1].time = 0.25f;
+        gradientKeys[2].color = Color.yellow;
+        gradientKeys[2].time = 0.5f;
+        gradientKeys[3].color = new Color(1,0.5399091f, 0.0235849f, 1);
+        gradientKeys[3].time = 0.75f;
+        gradientKeys[4].color = Color.red;
+        gradientKeys[4].time = 1.0f;
+        
+        _gradient.colorKeys = gradientKeys;
     }
     Color HexToColor(string hex)
     {
@@ -180,7 +183,7 @@ public class HeatmapEditorWindow : EditorWindow
 
             // Query type dropdown
             _selectedQueryTypeIndex = EditorGUILayout.Popup("Query Type:", _selectedQueryTypeIndex, _queryTypes);
-            _query = _queryHandler.GetFinalQuery(_queryTypes[_selectedQueryTypeIndex], _selectedMinAge, _selectedMaxAge, _countries[_selectedCountryTypeIndex], _sex[_selectedSex]);
+            _query = _queryHandler.GetFinalQuery(_queryTypes[_selectedQueryTypeIndex], _selectedMinAge, _selectedMaxAge, _selectedMinTime, _selectedMaxTime,_countries[_selectedCountryTypeIndex], _sex[_selectedSex]);
 
             // Interaction type dropdown
             if (_queryTypes[_selectedQueryTypeIndex] == "Interaction")
@@ -245,6 +248,12 @@ public class HeatmapEditorWindow : EditorWindow
         EditorGUILayout.IntField("Max Age",_selectedMaxAge);
         _selectedCountryTypeIndex = EditorGUILayout.Popup("Country:", _selectedCountryTypeIndex, _countries);
         _selectedSex = EditorGUILayout.Popup("Sex:", _selectedSex, _sex);
+        float minTime = _selectedMinTime, maxTime = _selectedMaxTime;
+        EditorGUILayout.MinMaxSlider(ref minTime, ref maxTime, 0, 500);
+        _selectedMinTime = (int)MathF.Round(minTime);
+        _selectedMaxTime = (int)MathF.Round(maxTime);
+        EditorGUILayout.FloatField("Min Time (Seconds)", _selectedMinTime);
+        EditorGUILayout.FloatField("Max Time (Seconds)", _selectedMaxTime);
     }
 
     private void DrawPathDisplay()
