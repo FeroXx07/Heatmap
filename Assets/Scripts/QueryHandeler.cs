@@ -147,7 +147,7 @@ public class QueryHandeler
 
        return q;
   }
-  public string GetFinalQuery(string queryType, int minAge, int maxAge, int minTime, int maxTime, string country, string sex)
+  public string GetFinalQuery(string queryType, int minAge, int maxAge, int minTime, int maxTime, string country, string sex, string interactionType)
   {
       string startQuery = "";
       string joinQueryHits = "JOIN Session S ON H.SessionId = S.SessionId JOIN User U ON S.PlayerId = U.Id";
@@ -174,7 +174,8 @@ public class QueryHandeler
             startQuery = $"{GetGranularityQueryString(granularityType)} SUM(Damage) AS TotalDamageInPosition, SUM(Damage) / MAX(SUM(Damage)) OVER() AS NormalizedDamage FROM Hit H {joinQueryHits} WHERE Mortal = 1 and Hitter != \"Staff\"";
             break;
             case "Interaction":
-          break;
+                startQuery = $"{GetGranularityQueryString(granularityType)} 1, 1 FROM brandonam.Interaction WHERE InteractionType = \"{interactionType}\" ";
+                break;
             default:
           Debug.LogError($"Unsupported query type: {queryType}");
           return null;

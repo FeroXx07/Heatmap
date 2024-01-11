@@ -185,7 +185,7 @@ public class HeatmapEditorWindow : EditorWindow
 
             // Query type dropdown
             _selectedQueryTypeIndex = EditorGUILayout.Popup("Query Type:", _selectedQueryTypeIndex, _queryTypes);
-            _query = _queryHandler.GetFinalQuery(_queryTypes[_selectedQueryTypeIndex], _selectedMinAge, _selectedMaxAge, _selectedMinTime, _selectedMaxTime,_countries[_selectedCountryTypeIndex], _sex[_selectedSex]);
+            _query = _queryHandler.GetFinalQuery(_queryTypes[_selectedQueryTypeIndex], _selectedMinAge, _selectedMaxAge, _selectedMinTime, _selectedMaxTime,_countries[_selectedCountryTypeIndex], _sex[_selectedSex], _interactionTypes[_selectedInteractionTypeIndex]);
 
             // Interaction type dropdown
             if (_queryTypes[_selectedQueryTypeIndex] == "Interaction")
